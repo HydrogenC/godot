@@ -203,6 +203,20 @@ void RenderingDevice::shader_set_get_cache_key_function(ShaderSPIRVGetCacheKeyFu
 	get_spirv_cache_key_function = p_function;
 }
 
+void RenderingDevice::register_built_in_include_file(const String &p_filename, const String &p_shader_code) {
+	build_in_includes[p_filename] = p_shader_code;
+}
+
+bool RenderingDevice::has_built_in_include_file(const String &p_filename) {
+	return build_in_includes.has(p_filename);
+}
+
+String RenderingDevice::get_built_in_include_file(const String &p_filename) {
+	const String *ptr = build_in_includes.getptr(p_filename);
+
+	return ptr ? *ptr : String();
+}
+
 Vector<uint8_t> RenderingDevice::shader_compile_spirv_from_source(ShaderStage p_stage, const String &p_source_code, ShaderLanguage p_language, String *r_error, bool p_allow_cache) {
 	if (p_allow_cache && cache_function) {
 		Vector<uint8_t> cache = cache_function(p_stage, p_source_code, p_language);
