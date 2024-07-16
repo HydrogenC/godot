@@ -37,7 +37,68 @@
 
 using namespace RendererSceneRenderImplementation;
 
-void SceneShaderForwardClustered::ShaderData::set_code(const String &p_code) {
+void SceneShaderForwardClustered::ShaderData::set_code(const String &p_code, RID p_shader_template) {
+	// get shader template
+	SceneShaderForwardClustered *shader_singleton = (SceneShaderForwardClustered *)SceneShaderForwardClustered::singleton;
+	RendererRD::MaterialStorage *material_storage = RendererRD::MaterialStorage::get_singleton();
+
+	shader_template = p_shader_template;
+	if (shader_template.is_null()) {
+		shader_template = shader_singleton->default_shader_template;
+	}
+	ERR_FAIL_COND(shader_template.is_null());
+
+	if (!material_storage->shader_template_is_initialized(shader_template)) {
+		// For our default template shader, this will be called when our default material gets created.
+
+		Vector<ShaderRD::VariantDefine> shader_versions;
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_BASE, "\n#define MODE_RENDER_DEPTH\n", true)); // SHADER_VERSION_DEPTH_PASS
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_BASE, "\n#define MODE_RENDER_DEPTH\n#define MODE_DUAL_PARABOLOID\n", true)); // SHADER_VERSION_DEPTH_PASS_DP
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_BASE, "\n#define MODE_RENDER_DEPTH\n#define MODE_RENDER_NORMAL_ROUGHNESS\n", true)); // SHADER_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_ADVANCED, "\n#define MODE_RENDER_DEPTH\n#define MODE_RENDER_NORMAL_ROUGHNESS\n#define MODE_RENDER_VOXEL_GI\n", false)); // SHADER_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_AND_VOXEL_GI
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_ADVANCED, "\n#define MODE_RENDER_DEPTH\n#define MODE_RENDER_MATERIAL\n", false)); // SHADER_VERSION_DEPTH_PASS_WITH_MATERIAL
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_ADVANCED, "\n#define MODE_RENDER_DEPTH\n#define MODE_RENDER_SDF\n", false)); // SHADER_VERSION_DEPTH_PASS_WITH_SDF
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_MULTIVIEW, "\n#define USE_MULTIVIEW\n#define MODE_RENDER_DEPTH\n", false)); // SHADER_VERSION_DEPTH_PASS_MULTIVIEW
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_MULTIVIEW, "\n#define USE_MULTIVIEW\n#define MODE_RENDER_DEPTH\n#define MODE_RENDER_NORMAL_ROUGHNESS\n", false)); // SHADER_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_MULTIVIEW
+		shader_versions.push_back(ShaderRD::VariantDefine(SHADER_GROUP_MULTIVIEW, "\n#define USE_MULTIVIEW\n#define MODE_RENDER_DEPTH\n#define MODE_RENDER_NORMAL_ROUGHNESS\n#define MODE_RENDER_VOXEL_GI\n", false)); // SHADER_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_AND_VOXEL_GI_MULTIVIEW
+
+		Vector<String> color_pass_flags = {
+			"\n#define MODE_SEPARATE_SPECULAR\n", // SHADER_COLOR_PASS_FLAG_SEPARATE_SPECULAR
+			"\n#define USE_LIGHTMAP\n", // SHADER_COLOR_PASS_FLAG_LIGHTMAP
+			"\n#define USE_MULTIVIEW\n", // SHADER_COLOR_PASS_FLAG_MULTIVIEW
+			"\n#define MOTION_VECTORS\n", // SHADER_COLOR_PASS_FLAG_MOTION_VECTORS
+		};
+
+		for (int i = 0; i < SHADER_COLOR_PASS_FLAG_COUNT; i++) {
+			String versions = "";
+			for (int j = 0; (1 << j) < SHADER_COLOR_PASS_FLAG_COUNT; j += 1) {
+				if ((1 << j) & i) {
+					versions += color_pass_flags[j];
+				}
+			}
+
+			// Assign a group based on what features this pass contains.
+			ShaderGroup group = SHADER_GROUP_BASE;
+			bool advanced_group = (i & SHADER_COLOR_PASS_FLAG_SEPARATE_SPECULAR) || (i & SHADER_COLOR_PASS_FLAG_LIGHTMAP) || (i & SHADER_COLOR_PASS_FLAG_MOTION_VECTORS);
+			bool multiview_group = i & SHADER_COLOR_PASS_FLAG_MULTIVIEW;
+			if (advanced_group && multiview_group) {
+				group = SHADER_GROUP_ADVANCED_MULTIVIEW;
+			} else if (advanced_group) {
+				group = SHADER_GROUP_ADVANCED;
+			} else if (multiview_group) {
+				group = SHADER_GROUP_MULTIVIEW;
+			}
+
+			shader_versions.push_back(ShaderRD::VariantDefine(group, versions, false));
+		}
+
+		material_storage->shader_template_initialize(shader_template, shader_versions, shader_singleton->default_defines);
+
+		if (RendererCompositorRD::get_singleton()->is_xr_enabled()) {
+			material_storage->shader_template_enable_group(shader_template, SHADER_GROUP_MULTIVIEW);
+		}
+	}
+
 	//compile
 
 	code = p_code;
@@ -156,7 +217,7 @@ void SceneShaderForwardClustered::ShaderData::set_code(const String &p_code) {
 	}
 
 	if (version.is_null()) {
-		version = SceneShaderForwardClustered::singleton->shader.version_create();
+		version = material_storage->shader_template_version_create(shader_template);
 	}
 
 	depth_draw = DepthDraw(depth_drawi);
@@ -188,7 +249,8 @@ void SceneShaderForwardClustered::ShaderData::set_code(const String &p_code) {
 	print_line("\n**vertex_globals:\n" + gen_code.stage_globals[ShaderCompiler::STAGE_VERTEX]);
 	print_line("\n**fragment_globals:\n" + gen_code.stage_globals[ShaderCompiler::STAGE_FRAGMENT]);
 #endif
-	SceneShaderForwardClustered::singleton->shader.version_set_code(version, gen_code.code, gen_code.uniforms, gen_code.stage_globals[ShaderCompiler::STAGE_VERTEX], gen_code.stage_globals[ShaderCompiler::STAGE_FRAGMENT], gen_code.defines);
+	material_storage->shader_template_version_set_code(shader_template, version, gen_code.code, gen_code.uniforms, gen_code.stage_globals[ShaderCompiler::STAGE_VERTEX], gen_code.stage_globals[ShaderCompiler::STAGE_FRAGMENT], gen_code.defines);
+	ERR_FAIL_COND(!material_storage->shader_template_version_is_valid(shader_template, version));
 
 	ubo_size = gen_code.uniform_total_size;
 	ubo_offsets = gen_code.uniform_offsets;
@@ -460,7 +522,7 @@ SceneShaderForwardClustered::ShaderData::~ShaderData() {
 
 	if (version.is_valid()) {
 		ERR_FAIL_NULL(SceneShaderForwardClustered::singleton);
-		SceneShaderForwardClustered::singleton->shader.version_free(version);
+		material_storage->shader_template_version_free(shader_template, version);
 	}
 }
 
@@ -482,9 +544,10 @@ void SceneShaderForwardClustered::MaterialData::set_next_pass(RID p_pass) {
 bool SceneShaderForwardClustered::MaterialData::update_parameters(const HashMap<StringName, Variant> &p_parameters, bool p_uniform_dirty, bool p_textures_dirty) {
 	if (shader_data->version.is_valid()) {
 		RID shader_rid = SceneShaderForwardClustered::singleton->shader.version_get_shader(shader_data->version, 0);
+		RendererRD::MaterialStorage *material_storage = RendererRD::MaterialStorage::get_singleton();
 
 		MutexLock lock(SceneShaderForwardClustered::singleton_mutex);
-		return update_parameters_uniform_set(p_parameters, p_uniform_dirty, p_textures_dirty, shader_data->uniforms, shader_data->ubo_offsets.ptr(), shader_data->texture_uniforms, shader_data->default_texture_params, shader_data->ubo_size, uniform_set, shader_rid, RenderForwardClustered::MATERIAL_UNIFORM_SET, true, true);
+		return update_parameters_uniform_set(p_parameters, p_uniform_dirty, p_textures_dirty, shader_data->uniforms, shader_data->ubo_offsets.ptr(), shader_data->texture_uniforms, shader_data->default_texture_params, shader_data->ubo_size, uniform_set, shader_rid, material_storage->shader_template_version_get_shader(shader_data->shader_template, shader_data->version, 0), RenderForwardClustered::MATERIAL_UNIFORM_SET, true, true);
 	} else {
 		return false;
 	}
@@ -522,6 +585,8 @@ SceneShaderForwardClustered::~SceneShaderForwardClustered() {
 	material_storage->material_free(overdraw_material);
 	material_storage->material_free(default_material);
 	material_storage->material_free(debug_shadow_splits_material);
+
+	material_storage->shader_template_free(default_shader_template);
 }
 
 void SceneShaderForwardClustered::init(const String p_defines) {
@@ -579,6 +644,10 @@ void SceneShaderForwardClustered::init(const String p_defines) {
 		if (RendererCompositorRD::get_singleton()->is_xr_enabled()) {
 			shader.enable_group(SHADER_GROUP_MULTIVIEW);
 		}
+
+		default_shader_template = material_storage->shader_template_allocate();
+		material_storage->shader_template_initialize(default_shader_template);
+		material_storage->shader_template_set_shader(default_shader_template, memnew(SceneForwardClusteredShaderRD));
 	}
 
 	material_storage->shader_set_data_request_function(RendererRD::MaterialStorage::SHADER_TYPE_3D, _create_shader_funcs);
@@ -805,7 +874,7 @@ void fragment() {
 		material_storage->material_set_shader(default_material, default_shader);
 
 		MaterialData *md = static_cast<MaterialData *>(material_storage->material_get_data(default_material, RendererRD::MaterialStorage::SHADER_TYPE_3D));
-		default_shader_rd = md->shader_data->get_shader_variant(PIPELINE_VERSION_COLOR_PASS, 0, false);
+		default_shader_rd = material_storage->shader_template_version_get_shader(default_shader_template, md->shader_data->version, SHADER_VERSION_COLOR_PASS);
 
 		default_material_shader_ptr = md->shader_data;
 		default_material_uniform_set = md->uniform_set;
@@ -889,10 +958,12 @@ void SceneShaderForwardClustered::set_default_specialization(const ShaderSpecial
 }
 
 void SceneShaderForwardClustered::enable_advanced_shader_group(bool p_needs_multiview) {
+	RendererRD::MaterialStorage *material_storage = RendererRD::MaterialStorage::get_singleton();
+
 	if (p_needs_multiview || RendererCompositorRD::get_singleton()->is_xr_enabled()) {
-		shader.enable_group(SHADER_GROUP_ADVANCED_MULTIVIEW);
+		material_storage->shader_template_enable_group_on_all(SHADER_GROUP_ADVANCED_MULTIVIEW);
 	}
-	shader.enable_group(SHADER_GROUP_ADVANCED);
+	material_storage->shader_template_enable_group_on_all(SHADER_GROUP_ADVANCED);
 }
 
 bool SceneShaderForwardClustered::is_multiview_shader_group_enabled() const {

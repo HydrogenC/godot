@@ -33,6 +33,7 @@
 #include "core/io/resource.h"
 #include "core/templates/self_list.h"
 #include "scene/resources/shader.h"
+#include "scene/resources/shader_template.h"
 #include "scene/resources/texture.h"
 #include "servers/rendering_server.h"
 
@@ -345,6 +346,9 @@ private:
 		uint32_t feature_mask;
 		uint32_t flags;
 
+		// shader template
+		uint64_t shader_template_id;
+
 		MaterialKey() {
 			memset(this, 0, sizeof(MaterialKey));
 		}
@@ -404,6 +408,12 @@ private:
 			if (flags[i]) {
 				mk.flags |= ((uint64_t)1 << i);
 			}
+		}
+
+		if (shader_template.is_valid()) {
+			mk.shader_template_id = shader_template->get_rid().get_id();
+		} else {
+			mk.shader_template_id = 0;
 		}
 
 		return mk;
@@ -480,6 +490,8 @@ private:
 	bool orm;
 	RID shader_rid;
 	HashMap<StringName, Variant> pending_params;
+
+	Ref<ShaderTemplate> shader_template;
 
 	Color albedo;
 	float specular = 0.0f;
@@ -576,6 +588,9 @@ protected:
 	virtual bool _can_use_render_priority() const override { return true; }
 
 public:
+	void set_shader_template(const Ref<ShaderTemplate> &p_shader_template);
+	Ref<ShaderTemplate> get_shader_template() const;
+
 	void set_albedo(const Color &p_albedo);
 	Color get_albedo() const;
 

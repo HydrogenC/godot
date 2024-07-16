@@ -141,6 +141,7 @@
 #include "scene/resources/portable_compressed_texture.h"
 #include "scene/resources/resource_format_text.h"
 #include "scene/resources/shader_include.h"
+#include "scene/resources/shader_template.h"
 #include "scene/resources/skeleton_profile.h"
 #include "scene/resources/sky.h"
 #include "scene/resources/style_box.h"
@@ -343,6 +344,9 @@ static Ref<ResourceFormatLoaderText> resource_loader_text;
 static Ref<ResourceFormatLoaderCompressedTexture2D> resource_loader_stream_texture;
 static Ref<ResourceFormatLoaderCompressedTextureLayered> resource_loader_texture_layered;
 static Ref<ResourceFormatLoaderCompressedTexture3D> resource_loader_texture_3d;
+
+static Ref<ResourceFormatSaverShaderTemplate> resource_saver_shader_template;
+static Ref<ResourceFormatLoaderShaderTemplate> resource_loader_shader_template;
 
 static Ref<ResourceFormatSaverShader> resource_saver_shader;
 static Ref<ResourceFormatLoaderShader> resource_loader_shader;
@@ -706,6 +710,10 @@ void register_scene_types() {
 
 	OS::get_singleton()->yield(); // may take time to init
 #endif // _3D_DISABLED
+
+	/* REGISTER SHADER TEMPLATE */
+
+	GDREGISTER_CLASS(ShaderTemplate);
 
 	/* REGISTER SHADER */
 

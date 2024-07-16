@@ -5,7 +5,7 @@
 #VERSION_DEFINES
 
 /* Include our forward mobile UBOs definitions etc. */
-#include "scene_forward_mobile_inc.glsl"
+#include "scene_forward_mobile_standard_inc.glsl"
 
 #define SHADER_IS_SRGB false
 #define SHADER_SPACE_FAR 0.0
@@ -120,30 +120,6 @@ layout(set = MATERIAL_UNIFORM_SET, binding = 0, std140) uniform MaterialUniforms
 layout(location = 9) out highp float dp_clip;
 
 #endif
-
-#ifdef USE_MULTIVIEW
-#ifdef has_VK_KHR_multiview
-#define ViewIndex gl_ViewIndex
-#else
-// !BAS! This needs to become an input once we implement our fallback!
-#define ViewIndex 0
-#endif
-vec3 multiview_uv(vec2 uv) {
-	return vec3(uv, ViewIndex);
-}
-ivec3 multiview_uv(ivec2 uv) {
-	return ivec3(uv, int(ViewIndex));
-}
-#else
-// Set to zero, not supported in non stereo
-#define ViewIndex 0
-vec2 multiview_uv(vec2 uv) {
-	return uv;
-}
-ivec2 multiview_uv(ivec2 uv) {
-	return uv;
-}
-#endif //USE_MULTIVIEW
 
 invariant gl_Position;
 
@@ -300,32 +276,29 @@ void main() {
 		model_normal_matrix = model_normal_matrix * mat3(matrix);
 	}
 
-	vec3 vertex = vertex_angle_attrib.xyz * instances.data[draw_call.instance_index].compressed_aabb_size_pad.xyz + instances.data[draw_call.instance_index].compressed_aabb_position_pad.xyz;
+	vec3 vertex;
 #ifdef NORMAL_USED
-	vec3 normal = oct_to_vec3(axis_tangent_attrib.xy * 2.0 - 1.0);
+	vec3 normal;
 #endif
-
 #if defined(NORMAL_USED) || defined(TANGENT_USED) || defined(NORMAL_MAP_USED) || defined(LIGHT_ANISOTROPY_USED)
-
 	vec3 binormal;
 	float binormal_sign;
 	vec3 tangent;
-	if (axis_tangent_attrib.z > 0.0 || axis_tangent_attrib.w < 1.0) {
-		// Uncompressed format.
-		vec2 signed_tangent_attrib = axis_tangent_attrib.zw * 2.0 - 1.0;
-		tangent = oct_to_vec3(vec2(signed_tangent_attrib.x, abs(signed_tangent_attrib.y) * 2.0 - 1.0));
-		binormal_sign = sign(signed_tangent_attrib.y);
-		binormal = normalize(cross(normal, tangent) * binormal_sign);
-	} else {
-		// Compressed format.
-		float angle = vertex_angle_attrib.w;
-		binormal_sign = angle > 0.5 ? 1.0 : -1.0; // 0.5 does not exist in UNORM16, so values are either greater or smaller.
-		angle = abs(angle * 2.0 - 1.0) * M_PI; // 0.5 is basically zero, allowing to encode both signs reliably.
-		vec3 axis = normal;
-		axis_angle_to_tbn(axis, angle, tangent, binormal, normal);
-		binormal *= binormal_sign;
-	}
 #endif
+
+	_unpack_vertex_attributes(
+			vertex_angle_attrib,
+			instances.data[draw_call.instance_index].compressed_aabb_position_pad.xyz,
+			instances.data[draw_call.instance_index].compressed_aabb_size_pad.xyz,
+#if defined(NORMAL_USED) || defined(TANGENT_USED) || defined(NORMAL_MAP_USED) || defined(LIGHT_ANISOTROPY_USED)
+			axis_tangent_attrib,
+#ifdef NORMAL_USED
+			normal,
+#endif // NORMAL_USED
+			tangent,
+			binormal,
+#endif
+			vertex);
 
 #ifdef UV_USED
 	uv_interp = uv_attrib;
@@ -581,7 +554,7 @@ void main() {
 #define SHADER_SPACE_FAR 0.0
 
 /* Include our forward mobile UBOs definitions etc. */
-#include "scene_forward_mobile_inc.glsl"
+#include "scene_forward_mobile_standard_inc.glsl"
 
 /* Varyings */
 
@@ -680,30 +653,6 @@ vec4 textureArray_bicubic(texture2DArray tex, vec3 uv, vec2 texture_size) {
 }
 #endif //USE_LIGHTMAP
 
-#ifdef USE_MULTIVIEW
-#ifdef has_VK_KHR_multiview
-#define ViewIndex gl_ViewIndex
-#else
-// !BAS! This needs to become an input once we implement our fallback!
-#define ViewIndex 0
-#endif
-vec3 multiview_uv(vec2 uv) {
-	return vec3(uv, ViewIndex);
-}
-ivec3 multiview_uv(ivec2 uv) {
-	return ivec3(uv, int(ViewIndex));
-}
-#else
-// Set to zero, not supported in non stereo
-#define ViewIndex 0
-vec2 multiview_uv(vec2 uv) {
-	return uv;
-}
-ivec2 multiview_uv(ivec2 uv) {
-	return uv;
-}
-#endif //USE_MULTIVIEW
-
 //defines to keep compatibility with vertex
 
 #ifdef USE_MULTIVIEW
@@ -729,32 +678,9 @@ layout(set = MATERIAL_UNIFORM_SET, binding = 0, std140) uniform MaterialUniforms
 
 #GLOBALS
 
+#include "scene_forward_mobile_output_buffers_inc.glsl"
+
 /* clang-format on */
-
-#ifdef MODE_RENDER_DEPTH
-
-#ifdef MODE_RENDER_MATERIAL
-
-layout(location = 0) out vec4 albedo_output_buffer;
-layout(location = 1) out vec4 normal_output_buffer;
-layout(location = 2) out vec4 orm_output_buffer;
-layout(location = 3) out vec4 emission_output_buffer;
-layout(location = 4) out float depth_output_buffer;
-
-#endif // MODE_RENDER_MATERIAL
-
-#else // RENDER DEPTH
-
-#ifdef MODE_MULTIPLE_RENDER_TARGETS
-
-layout(location = 0) out vec4 diffuse_buffer; //diffuse (rgb) and roughness
-layout(location = 1) out vec4 specular_buffer; //specular and SSS (subsurface scatter)
-#else
-
-layout(location = 0) out mediump vec4 frag_color;
-#endif // MODE_MULTIPLE_RENDER_TARGETS
-
-#endif // RENDER DEPTH
 
 #include "../scene_forward_aa_inc.glsl"
 

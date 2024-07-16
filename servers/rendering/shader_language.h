@@ -195,6 +195,7 @@ public:
 		TK_CURSOR,
 		TK_ERROR,
 		TK_EOF,
+		TK_SHADER_TEMPLATE,
 		TK_MAX
 	};
 
@@ -1044,6 +1045,7 @@ private:
 	StringName last_name;
 	bool is_shader_inc = false;
 
+	String shader_template;
 	String current_uniform_group_name;
 	String current_uniform_subgroup_name;
 
@@ -1236,6 +1238,7 @@ public:
 	void clear();
 
 	static String get_shader_type(const String &p_code);
+	static String get_shader_template(const String &p_code);
 	static bool is_builtin_func_out_parameter(const String &p_name, int p_param);
 
 	struct ShaderCompileInfo {
