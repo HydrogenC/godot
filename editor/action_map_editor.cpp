@@ -50,6 +50,7 @@ static bool _is_action_name_valid(const String &p_name) {
 	return true;
 }
 
+
 void ActionMapEditor::_event_config_confirmed() {
 	Ref<InputEvent> ev = event_config_dialog->get_event();
 
