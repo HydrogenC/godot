@@ -135,6 +135,7 @@ void Shader::set_code(const String &p_code) {
 		if (!shader_template_path.is_empty()) {
 			new_shader_template = ResourceLoader::load(shader_template_path);
 		}
+
 		if (shader_template != new_shader_template) {
 			shader_template = new_shader_template;
 			if (shader_template.is_valid()) {
@@ -142,6 +143,13 @@ void Shader::set_code(const String &p_code) {
 			} else {
 				RenderingServer::get_singleton()->shader_set_shader_template(shader_rid, RID());
 			}
+		}
+
+		if (shader_template.is_valid()) {
+			int num_template_uniform_lines = 0;
+			String uniforms;
+			shader_template.ptr()->extract_uniforms(uniforms);
+			preprocessed_code = ShaderLanguage::inject_template_uniforms(preprocessed_code, uniforms, num_template_uniform_lines);
 		}
 
 		RenderingServer::get_singleton()->shader_set_code(shader_rid, preprocessed_code);
