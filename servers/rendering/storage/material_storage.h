@@ -61,6 +61,7 @@ public:
 	virtual void shader_template_free(RID p_rid) = 0;
 
 	virtual void shader_template_set_raster_code(RID p_template_shader, const String &p_vertex_code, const String &p_fragment_code, const String &p_name) = 0;
+	virtual void shader_template_set_uniforms(RID p_template_shader, const String &p_uniforms_code) = 0;
 
 	/* SHADER API */
 	virtual RID shader_allocate() = 0;

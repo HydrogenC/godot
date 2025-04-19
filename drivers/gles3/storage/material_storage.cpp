@@ -2157,6 +2157,10 @@ void MaterialStorage::shader_template_set_raster_code(RID p_template_shader, con
 	// Not supported in compatibility (yet).
 }
 
+void MaterialStorage::shader_template_set_uniforms(RID p_template_shader, const String &p_uniforms_code) {
+	// Not supported in compatibility, same as above.
+}
+
 /* SHADER API */
 
 RID MaterialStorage::shader_allocate() {

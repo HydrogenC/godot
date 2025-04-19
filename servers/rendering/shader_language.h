@@ -1163,6 +1163,7 @@ private:
 	String _get_qualifier_str(ArgumentQualifier p_qualifier) const;
 
 	Error _parse_shader(const HashMap<StringName, FunctionInfo> &p_functions, const Vector<ModeInfo> &p_render_modes, const HashSet<String> &p_shader_types);
+	Error _parse_uniform_list(ShaderNode::Uniform& uniform);
 
 	Error _find_last_flow_op_in_block(BlockNode *p_block, FlowOperation p_op);
 	Error _find_last_flow_op_in_op(ControlFlowNode *p_flow, FlowOperation p_op);
@@ -1184,6 +1185,7 @@ public:
 
 	static String get_shader_type(const String &p_code);
 	static String get_shader_template(const String &p_code);
+	static String inject_uniform_definitions(const String &p_code, const String& p_uniforms);
 	static bool is_builtin_func_out_parameter(const String &p_name, int p_param);
 
 	struct ShaderCompileInfo {

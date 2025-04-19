@@ -1884,6 +1884,32 @@ void MaterialStorage::shader_template_set_raster_code(RID p_template_shader, con
 	}
 }
 
+ShaderLanguage::DataType _get_global_shader_uniform_type(const StringName &p_name) {
+	RS::GlobalShaderParameterType gvt = RSG::material_storage->global_shader_parameter_get_type(p_name);
+	return (ShaderLanguage::DataType)RS::global_shader_uniform_type_get_shader_datatype(gvt);
+}
+
+void MaterialStorage::shader_template_set_uniforms(RID p_template_shader, const String &p_uniforms_code) {
+	ShaderTemplate *shader_template = shader_template_owner.get_or_null(p_template_shader);
+	ERR_FAIL_NULL(shader_template);
+
+	// Compile uniform definitions
+	ShaderLanguage parser;
+	ShaderLanguage::ShaderCompileInfo comp_info;
+	comp_info.global_shader_uniform_type_func = _get_global_shader_uniform_type;
+	Error err = parser.compile(p_uniforms_code, comp_info);
+
+	if (err != OK) {
+		ERR_FAIL_MSG("Shader template compilation failed. ");
+	}
+
+	ShaderLanguage::ShaderNode* shader = parser.get_shader();
+	// Copy uniform list
+	shader_template->uniforms = shader->uniforms;
+	// Recycle shader object
+	parser.clear();
+}
+
 void MaterialStorage::shader_template_set_shader(RID p_template_shader, ShaderRD *p_shader) {
 	ShaderTemplate *shader_template = shader_template_owner.get_or_null(p_template_shader);
 	ERR_FAIL_NULL(shader_template);
@@ -2158,6 +2184,17 @@ void MaterialStorage::shader_set_code(RID p_shader, const String &p_code) {
 
 		shader->data->set_path_hint(shader->path_hint);
 		shader->data->set_code(p_code, shader_template);
+
+		ShaderTemplate* p_template = shader_template_owner.get_or_null(shader_template);
+		if (p_template) {
+			for (auto& uniform : p_template->uniforms) {
+				if (shader->data->uniforms.has(uniform.key)) {
+					ERR_FAIL_MSG("Shader uniform name conflicts with uniforms predefined in the shader template. ");
+				}
+
+				shader->data->uniforms.insert(uniform.key, uniform.value);
+			}
+		}
 	}
 
 	for (Material *E : shader->owners) {

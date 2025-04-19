@@ -59,6 +59,8 @@ void ShaderTemplate::_update_template() {
 	mode = Shader::MODE_MAX;
 	String current_rendering_method = Main::get_rendering_method();
 	bool is_current_rendering_method = true; // If no rendering method has been specified, we assume true.
+	bool is_defining_uniforms = false;
+	String uniform_defs = "";
 	String vertex_shader = "";
 	String fragment_shader = "";
 
@@ -82,6 +84,11 @@ void ShaderTemplate::_update_template() {
 			ERR_FAIL_COND_MSG(pos == -1, "Incomplete tag found in shader template - " + String::num_int64(lidx) + ": " + line);
 
 			String tag = line.substr(2, pos - 2);
+
+			if (is_defining_uniforms && tag != "uniform") {
+				is_defining_uniforms = false;
+			}
+
 			if (tag == "vertex") {
 				if (is_current_rendering_method) {
 					ERR_FAIL_COND_MSG(shader != -1, "Unexpected vertex shader in shader template - " + String::num_int64(lidx) + ": " + line);
@@ -94,6 +101,11 @@ void ShaderTemplate::_update_template() {
 					shader = 1;
 					empty_lines = "";
 				}
+			} else if (tag == "uniforms") {
+				// Only one `uniform` tag per shader template is allowed
+				ERR_FAIL_COND_MSG(is_defining_uniforms || !uniform_defs.is_empty(), "Duplicate definition of uniform section");
+
+				is_defining_uniforms = true;
 			} else {
 				// Assume any other tag denotes our rendering method heading.
 				is_current_rendering_method = (tag == current_rendering_method);
@@ -101,6 +113,9 @@ void ShaderTemplate::_update_template() {
 		} else if (line.is_empty()) {
 			// Remove any trailing empty lines
 			empty_lines += "\n";
+		} else if (is_defining_uniforms) {
+			// Append uniform
+			uniform_defs += line + "\n";
 		} else if (is_current_rendering_method) {
 			ERR_FAIL_COND_MSG(shader == -1, "Unexpected shader template code - " + String::num_int64(lidx) + ": " + line);
 
@@ -132,6 +147,7 @@ void ShaderTemplate::_update_template() {
 	ERR_FAIL_COND_MSG(vertex_shader.is_empty(), "No vertex shader code found for this shader template.");
 	ERR_FAIL_COND_MSG(fragment_shader.is_empty(), "No vertex shader code found for this shader template.");
 
+	RenderingServer::get_singleton()->shader_template_set_uniforms(shader_template, uniform_defs);
 	RenderingServer::get_singleton()->shader_template_set_raster_code(shader_template, vertex_shader, fragment_shader, shader_name);
 }
 

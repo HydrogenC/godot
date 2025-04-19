@@ -228,6 +228,7 @@ public:
 	FUNCRIDSPLIT(shader_template)
 
 	FUNC4(shader_template_set_raster_code, RID, const String &, const String &, const String &)
+	FUNC2(shader_template_set_uniforms, RID, const String &)
 
 	FUNCRIDSPLIT(shader)
 
