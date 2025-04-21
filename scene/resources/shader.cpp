@@ -56,7 +56,7 @@ Shader::Mode Shader::get_mode() const {
 void Shader::_check_shader_rid() const {
 	MutexLock lock(shader_rid_mutex);
 	if (shader_rid.is_null() && !preprocessed_code.is_empty()) {
-		shader_rid = RenderingServer::get_singleton()->shader_create_from_code(preprocessed_code, get_path());
+		shader_rid = RenderingServer::get_singleton()->shader_create_from_code(preprocessed_code, RID(), get_path());
 		preprocessed_code = String();
 	}
 }
@@ -131,16 +131,16 @@ void Shader::set_code(const String &p_code) {
 	if (shader_rid.is_valid()) {
 		Ref<ShaderTemplate> new_shader_template;
 
-		String shader_template_path = ShaderLanguage::get_shader_template(pp_code);
+		String shader_template_path = ShaderLanguage::get_shader_template(preprocessed_code);
 		if (!shader_template_path.is_empty()) {
 			new_shader_template = ResourceLoader::load(shader_template_path);
 		}
 		if (shader_template != new_shader_template) {
 			shader_template = new_shader_template;
 			if (shader_template.is_valid()) {
-				RenderingServer::get_singleton()->shader_set_shader_template(shader, shader_template->get_rid(), true);
+				RenderingServer::get_singleton()->shader_set_shader_template(shader_rid, shader_template->get_rid(), true);
 			} else {
-				RenderingServer::get_singleton()->shader_set_shader_template(shader, RID());
+				RenderingServer::get_singleton()->shader_set_shader_template(shader_rid, RID());
 			}
 		}
 

@@ -81,7 +81,7 @@ public:
 
 private:
 	// build in includes
-	static HashMap<String, String> build_in_includes;
+	static HashMap<String, String> built_in_includes;
 
 	static ShaderCompileToSPIRVFunction compile_to_spirv_function;
 	static ShaderCacheFunction cache_function;

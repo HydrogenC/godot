@@ -185,7 +185,6 @@ public:
 		void _create_pipeline(PipelineKey p_pipeline_key);
 		PipelineHashMapRD<PipelineKey, ShaderData, void (ShaderData::*)(PipelineKey)> pipeline_hash_map;
 
-		bool valid = false;
 		RID shader_template;
 		RID version;
 

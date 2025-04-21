@@ -1941,18 +1941,16 @@ void fragment() {)";
 	// We must create the shader outside the shader_map_mutex to avoid potential deadlocks with
 	// other tasks in the WorkerThreadPool simultaneously creating materials, which
 	// may also hold the shared shader_map_mutex lock.
-	RID new_shader = RS::get_singleton()->shader_create_from_code(code);
 
-	MutexLock lock(shader_map_mutex);
-	
-	// Set shader template.
+	// Get shader template.
 	RID shader_template_rid;
 	if (shader_template.is_valid()) {
 		shader_template_rid = shader_template->get_rid();
 	}
 
-	RS::get_singleton()->shader_set_shader_template(shader_data.shader, shader_template_rid, true);
-	RS::get_singleton()->shader_set_code(shader_data.shader, code);
+	RID new_shader = RS::get_singleton()->shader_create_from_code(code, shader_template_rid);
+
+	MutexLock lock(shader_map_mutex);
 
 	ShaderData *v = shader_map.getptr(mk);
 	if (unlikely(v)) {

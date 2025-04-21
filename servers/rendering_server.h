@@ -229,7 +229,7 @@ public:
 	};
 
 	virtual RID shader_create() = 0;
-	virtual RID shader_create_from_code(const String &p_code, const String &p_path_hint = String()) = 0;
+	virtual RID shader_create_from_code(const String &p_code, RID p_shader_template = RID(), const String& p_path_hint = String()) = 0;
 
 	virtual void shader_set_shader_template(RID p_shader, RID p_shader_template = RID(), bool p_clear_code = false) = 0;
 	virtual void shader_set_code(RID p_shader, const String &p_code) = 0;

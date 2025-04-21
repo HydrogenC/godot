@@ -41,14 +41,6 @@ layout(location = 7) out vec4 screen_position;
 layout(location = 8) out vec4 prev_screen_position;
 #endif
 
-#ifdef MATERIAL_UNIFORMS_USED
-/* clang-format off */
-layout(set = MATERIAL_UNIFORM_SET, binding = 0, std140) uniform MaterialUniforms {
-#MATERIAL_UNIFORMS
-} material;
-/* clang-format on */
-#endif
-
 float global_time;
 
 #ifdef MODE_DUAL_PARABOLOID
@@ -677,7 +669,7 @@ void main() {
 #define SHADER_IS_SRGB false
 #define SHADER_SPACE_FAR 0.0
 
-#include "scene_forward_clustered_inc.glsl"
+#include "scene_forward_clustered_standard_inc.glsl"
 
 /* Varyings */
 
@@ -800,14 +792,6 @@ layout(location = 13) highp in vec4 specular_light_interp;
 #if defined(ENABLE_SSS) && defined(ENABLE_TRANSMITTANCE)
 //both required for transmittance to be enabled
 #define LIGHT_TRANSMITTANCE_USED
-#endif
-
-#ifdef MATERIAL_UNIFORMS_USED
-/* clang-format off */
-layout(set = MATERIAL_UNIFORM_SET, binding = 0, std140) uniform MaterialUniforms {
-#MATERIAL_UNIFORMS
-} material;
-/* clang-format on */
 #endif
 
 #GLOBALS

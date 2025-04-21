@@ -39,6 +39,9 @@
 #include "servers/rendering/renderer_rd/uniform_set_cache_rd.h"
 #include "servers/rendering/rendering_device.h"
 #include "servers/rendering/rendering_server_default.h"
+#include "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered_input_attributes_inc.glsl.gen.h"
+#include "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered_output_buffers_inc.glsl.gen.h"
+#include "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered_standard_inc.glsl.gen.h"
 
 using namespace RendererSceneRenderImplementation;
 
@@ -4853,7 +4856,6 @@ RenderForwardClustered::RenderForwardClustered() {
 
 	RenderingDevice::register_built_in_include_file("standard_includes.glsl", scene_forward_clustered_standard_inc_shader_glsl);
 	RenderingDevice::register_built_in_include_file("input_attributes.glsl", scene_forward_clustered_input_attributes_inc_shader_glsl);
-	RenderingDevice::register_built_in_include_file("specialization_constants.glsl", scene_forward_clustered_specialization_constants_inc_shader_glsl);
 	RenderingDevice::register_built_in_include_file("output_buffers.glsl", scene_forward_clustered_output_buffers_inc_shader_glsl);
 
 	/* SCENE SHADER */

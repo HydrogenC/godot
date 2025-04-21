@@ -439,6 +439,7 @@ public:
 	void shader_template_set_variant_enabled(RID p_template_shader, int p_variant, bool p_enabled);
 	bool shader_template_is_variant_enabled(RID p_template_shader, int p_variant) const;
 	void shader_template_enable_group(RID p_template_shader, int p_group);
+	bool shader_template_is_group_enabled(RID p_template_shader, int p_group);
 	void shader_template_enable_group_on_all(int p_group);
 
 	// shader version

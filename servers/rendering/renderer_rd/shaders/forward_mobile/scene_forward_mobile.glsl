@@ -10,72 +10,7 @@
 #define SHADER_IS_SRGB false
 #define SHADER_SPACE_FAR 0.0
 
-/* INPUT ATTRIBS */
-
-// Always contains vertex position in XYZ, can contain tangent angle in W.
-layout(location = 0) in vec4 vertex_angle_attrib;
-
-//only for pure render depth when normal is not used
-
-#ifdef NORMAL_USED
-// Contains Normal/Axis in RG, can contain tangent in BA.
-layout(location = 1) in vec4 axis_tangent_attrib;
-#endif
-
-// Location 2 is unused.
-
-#if defined(COLOR_USED)
-layout(location = 3) in vec4 color_attrib;
-#endif
-
-#ifdef UV_USED
-layout(location = 4) in vec2 uv_attrib;
-#endif
-
-#if defined(UV2_USED) || defined(USE_LIGHTMAP) || defined(MODE_RENDER_MATERIAL)
-layout(location = 5) in vec2 uv2_attrib;
-#endif // MODE_RENDER_MATERIAL
-
-#if defined(CUSTOM0_USED)
-layout(location = 6) in vec4 custom0_attrib;
-#endif
-
-#if defined(CUSTOM1_USED)
-layout(location = 7) in vec4 custom1_attrib;
-#endif
-
-#if defined(CUSTOM2_USED)
-layout(location = 8) in vec4 custom2_attrib;
-#endif
-
-#if defined(CUSTOM3_USED)
-layout(location = 9) in vec4 custom3_attrib;
-#endif
-
-#if defined(BONES_USED) || defined(USE_PARTICLE_TRAILS)
-layout(location = 10) in uvec4 bone_attrib;
-#endif
-
-#if defined(WEIGHTS_USED) || defined(USE_PARTICLE_TRAILS)
-layout(location = 11) in vec4 weight_attrib;
-#endif
-
-vec3 oct_to_vec3(vec2 e) {
-	vec3 v = vec3(e.xy, 1.0 - abs(e.x) - abs(e.y));
-	float t = max(-v.z, 0.0);
-	v.xy += t * -sign(v.xy);
-	return normalize(v);
-}
-
-void axis_angle_to_tbn(vec3 axis, float angle, out vec3 tangent, out vec3 binormal, out vec3 normal) {
-	float c = cos(angle);
-	float s = sin(angle);
-	vec3 omc_axis = (1.0 - c) * axis;
-	vec3 s_axis = s * axis;
-	tangent = omc_axis.xxx * axis + vec3(c, -s_axis.z, s_axis.y);
-	binormal = omc_axis.yyy * axis + vec3(s_axis.z, c, -s_axis.x);
-	normal = omc_axis.zzz * axis + vec3(-s_axis.y, s_axis.x, c);
-}
+#include "scene_forward_mobile_input_attributes_inc.glsl"
 
 /* Varyings */
 
@@ -107,13 +42,6 @@ layout(location = 8) highp out vec4 specular_light_interp;
 
 #include "../scene_forward_vertex_lights_inc.glsl"
 #endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
-#ifdef MATERIAL_UNIFORMS_USED
-/* clang-format off */
-layout(set = MATERIAL_UNIFORM_SET, binding = 0, std140) uniform MaterialUniforms {
-#MATERIAL_UNIFORMS
-} material;
-/* clang-format on */
-#endif
 
 #ifdef MODE_DUAL_PARABOLOID
 
@@ -666,14 +594,6 @@ vec4 textureArray_bicubic(texture2DArray tex, vec3 uv, vec2 texture_size) {
 #if defined(ENABLE_SSS) && defined(ENABLE_TRANSMITTANCE)
 //both required for transmittance to be enabled
 #define LIGHT_TRANSMITTANCE_USED
-#endif
-
-#ifdef MATERIAL_UNIFORMS_USED
-/* clang-format off */
-layout(set = MATERIAL_UNIFORM_SET, binding = 0, std140) uniform MaterialUniforms {
-#MATERIAL_UNIFORMS
-} material;
-/* clang-format on */
 #endif
 
 #GLOBALS

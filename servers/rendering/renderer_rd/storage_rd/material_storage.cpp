@@ -2062,6 +2062,15 @@ void MaterialStorage::shader_template_enable_group(RID p_template_shader, int p_
 	shader_template->shader->enable_group(p_group);
 }
 
+bool MaterialStorage::shader_template_is_group_enabled(RID p_template_shader, int p_group) {
+	ShaderTemplate *shader_template = shader_template_owner.get_or_null(p_template_shader);
+	ERR_FAIL_NULL_V(shader_template, false);
+	ERR_FAIL_NULL_V(shader_template->shader, false);
+	ERR_FAIL_COND_V(!shader_template->initialized, false);
+
+	return shader_template->shader->is_group_enabled(p_group);
+}
+
 void MaterialStorage::shader_template_enable_group_on_all(int p_group) {
 	List<RID> owned;
 	shader_template_owner.get_owned_list(&owned);

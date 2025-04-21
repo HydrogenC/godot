@@ -247,7 +247,7 @@ public:
 
 	FUNCRIDSPLIT(shader)
 
-	virtual RID shader_create_from_code(const String &p_code, const String &p_path_hint = String()) override {
+	virtual RID shader_create_from_code(const String &p_code, RID p_shader_template = RID(), const String &p_path_hint = String()) override {
 		RID shader = RSG::material_storage->shader_allocate();
 		bool using_server_thread = Thread::get_caller_id() == server_thread;
 		if (using_server_thread || RSG::rasterizer->can_create_resources_async()) {
@@ -256,7 +256,10 @@ public:
 			}
 
 			RSG::material_storage->shader_initialize(shader);
+			// Set template before code to avoid duplicate compilation
+			RSG::material_storage->shader_set_shader_template(shader, p_shader_template);
 			RSG::material_storage->shader_set_code(shader, p_code);
+
 			RSG::material_storage->shader_set_path_hint(shader, p_path_hint);
 		} else {
 			command_queue.push(RSG::material_storage, &RendererMaterialStorage::shader_initialize, shader);
