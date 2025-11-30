@@ -37,10 +37,11 @@
 #define GTAO_BIAS_MIP_LEVEL (0)
 #define GTAO_FALLOFF_RANGE (0.717)
 // The default intensity of ASSAO is 2.0, but XeGTAO uses 1.0 as base, so we scale it down to match the appearance.
-#define GTAO_INTENSITY_SCALE (0.5)
+#define GTAO_INTENSITY_SCALE (0.25)
 
 #define PI 3.141592653589793
 #define PI_HALF (PI / 2.0)
+#define PI_INV 0.318309886183121
 
 const int num_slices[5] = { 2, 4, 5, 6, 8 };
 const int num_taps[5] = { 4, 6, 8, 12, 16 };
@@ -177,11 +178,63 @@ float acos_fast(float x) {
 	return x >= 0.0 ? res : PI - res;
 }
 
-float GTAO_slice(in int num_taps, vec2 base_uv, vec2 screen_dir, float search_radius, float initial_offset, vec3 view_pos, vec3 view_dir, float falloff_mul, vec3 view_space_normal) {
+// GTAO with visibility bitmasks
+#define BITMASK_SECTOR_COUNT 32
+
+uint bit_count(uint value) {
+	value = value - ((value >> 1u) & 0x55555555u);
+	value = (value & 0x33333333u) + ((value >> 2u) & 0x33333333u);
+	return ((value + (value >> 4u) & 0xF0F0F0Fu) * 0x1010101u) >> 24u;
+}
+
+// Refer to: https://cdrinmatane.github.io/posts/ssaovb-code/
+uint update_sectors(float min_horizon, float max_horizon, uint global_occluded_bitmask)
+{
+	uint start_horizon_int = uint(min_horizon * BITMASK_SECTOR_COUNT);
+	float angle_horizon = (max_horizon - min_horizon) * BITMASK_SECTOR_COUNT;
+	uint angle_horizon_int = uint(ceil(angle_horizon));
+	uint angle_horizon_bitmask = angle_horizon_int > 0 ? (0xFFFFFFFFu >> (BITMASK_SECTOR_COUNT - angle_horizon_int)) : 0u;
+	uint current_occluded_bitmask = angle_horizon_bitmask << start_horizon_int;
+	return global_occluded_bitmask | current_occluded_bitmask;
+}
+
+// Fast acos approximation (degree-3 polynomial)
+vec2 fast_acos2(vec2 x)
+{
+	return ((-0.69813170 * x * x) - 0.87266463) * x + 1.57079633;
+}
+
+// Compute front and back horizon angles
+vec2 get_front_back_horizons(float sampling_direction, vec3 delta_pos, vec3 view_vec, float n)
+{
+	sampling_direction = -sampling_direction; // Flip to align with left-handed view space and Y-down
+	vec3 delta_pos_backface = delta_pos - view_vec * params.thickness_heuristic;
+
+	vec2 front_back_horizon = vec2(
+	dot(normalize(delta_pos), view_vec),
+	dot(normalize(delta_pos_backface), view_vec)
+	);
+
+	front_back_horizon = fast_acos2(front_back_horizon);
+
+	front_back_horizon = clamp(
+	(sampling_direction * -front_back_horizon - n + PI_HALF) / PI,
+	0.0, 1.0
+	);
+
+	// Conditional swizzle: if sampling_direction >= 0.0, return .yx, else .xy
+	front_back_horizon = sampling_direction >= 0.0
+	? front_back_horizon.yx
+	: front_back_horizon.xy;
+
+	return front_back_horizon;
+}
+
+float GTAO_slice(in int num_slices, in int num_taps, in int slice_index, float sample_noise, vec2 base_uv, vec2 screen_dir, float search_radius, vec3 view_pos, vec3 view_dir, vec3 view_space_normal) {
 	float scene_depth, sample_delta_len_sq, sample_horizon_cos, falloff;
 	vec3 sample_delta;
 	vec2 sample_uv;
-	const vec2 screen_vec_pixels = screen_dir * params.viewport_pixel_size;
+	const vec2 screen_vec_uv = screen_dir * params.viewport_pixel_size;
 	const float thickness = params.thickness_heuristic;
 
 	// Project view_space_normal onto the plane defined by screen_dir and view_dir
@@ -195,11 +248,17 @@ float GTAO_slice(in int num_taps, vec2 base_uv, vec2 screen_dir, float search_ra
 	float cos_norm = dot(proj_normal_vec, view_dir) / proj_normal_len;
 	float n = sign_norm * acos_fast(cos_norm);
 
-	// this is a lower weight target; not using -1 as in the original paper because it is under horizon
-	vec2 horizon_cos = vec2(-1.0, -1.0);
+	uint occlusion_bitmask = 0u;
+
 	// Find the largest angle
 	for (int i = 0; i < num_taps; ++i) {
-		vec2 uv_offset = screen_vec_pixels * max(search_radius * (float(i) + initial_offset), float(i) + 1.0);
+		float step_noise = float(slice_index + i * num_taps) * 0.6180339887498948482; // <- this should unroll
+		step_noise = fract(sample_noise + step_noise);
+
+		float s = (i + step_noise) / num_taps;
+		s *= s;
+
+		vec2 uv_offset = screen_vec_uv * max(search_radius * s, float(i) + 1.0);
 		// Paper: flip y due to texture coordinate system
 		uv_offset.y *= -1.0;
 
@@ -213,51 +272,46 @@ float GTAO_slice(in int num_taps, vec2 base_uv, vec2 screen_dir, float search_ra
 			mip_level += 2;
 		}
 
+		float scene_depth;
+		vec3 delta_pos1, delta_pos2;
+		vec2 sample_uv, sample_horizon_cos, delta_pos_len_sq;
+
 		// Positive direction
 		// Clamp UV coords to avoid artifacts
 		sample_uv = base_uv + uv_offset;
 		scene_depth = textureLod(source_depth_mipmaps, vec3(sample_uv, params.pass), mip_level).x;
-		sample_delta = NDC_to_viewspace(sample_uv, scene_depth).xyz - view_pos;
-		sample_delta_len_sq = dot(sample_delta, sample_delta);
-		// TODO: This could be replaced with fast sqrt
-		sample_horizon_cos = dot(sample_delta, view_dir) * inversesqrt(sample_delta_len_sq);
-		// XeGTAO uses 1/r falloff here, ASSAO uses 1/r^2 falloff instead.
-		// To make the AO appear sharper, 1/r^2 is chosen
-		falloff = clamp(sample_delta_len_sq * falloff_mul, 0.0, 1.0);
-		sample_horizon_cos = mix(sample_horizon_cos, horizon_cos.x, falloff);
-
-		// Thickness heuristic - see "4.3 Implementation details, Height-field assumption considerations"
-		horizon_cos.x = (sample_horizon_cos > horizon_cos.x) ? sample_horizon_cos : mix(sample_horizon_cos, horizon_cos.x, thickness);
+		delta_pos1 = NDC_to_viewspace(sample_uv, scene_depth).xyz - view_pos;
+		delta_pos_len_sq.x = dot(delta_pos1, delta_pos1);
+		// TODO: This could be replaced with fast rsqrt
+		sample_horizon_cos.x = dot(delta_pos1, view_dir) * inversesqrt(delta_pos_len_sq.x);
 
 		// Negative direction
 		sample_uv = base_uv - uv_offset;
 		scene_depth = textureLod(source_depth_mipmaps, vec3(sample_uv, params.pass), mip_level).x;
-		sample_delta = NDC_to_viewspace(sample_uv, scene_depth).xyz - view_pos;
-		sample_delta_len_sq = dot(sample_delta, sample_delta);
-		sample_horizon_cos = dot(sample_delta, view_dir) * inversesqrt(sample_delta_len_sq);
+		delta_pos2 = NDC_to_viewspace(sample_uv, scene_depth).xyz - view_pos;
+		delta_pos_len_sq.y = dot(delta_pos2, delta_pos2);
+		sample_horizon_cos.y = dot(delta_pos2, view_dir) * inversesqrt(delta_pos_len_sq.y);
 
-		falloff = clamp(sample_delta_len_sq * falloff_mul, 0.0, 1.0);
-		sample_horizon_cos = mix(sample_horizon_cos, horizon_cos.y, falloff);
+		float back_horizon;
+		vec2 front_back_horizon;
 
-		horizon_cos.y = (sample_horizon_cos > horizon_cos.y) ? sample_horizon_cos : mix(sample_horizon_cos, horizon_cos.y, thickness);
+		// Update visibility mask for both directions
+		back_horizon = dot(normalize(delta_pos1 - view_dir * thickness), view_dir);
+		front_back_horizon.x = clamp((-acos(sample_horizon_cos.x) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+		front_back_horizon.y = clamp((-acos(back_horizon) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+
+		// `front_back_horizon.x` is larger than `.y`
+		occlusion_bitmask = update_sectors(front_back_horizon.y, front_back_horizon.x, occlusion_bitmask);
+
+		back_horizon = dot(normalize(delta_pos2 - view_dir * thickness), view_dir);
+		front_back_horizon.x = clamp((acos_fast(sample_horizon_cos.y) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+		front_back_horizon.y = clamp((acos_fast(back_horizon) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+
+		// `front_back_horizon.y` is larger than `.x`
+		occlusion_bitmask = update_sectors(front_back_horizon.x, front_back_horizon.y, occlusion_bitmask);
 	}
 
-	// Convert cosine to angle, `horizon_cos` is now an ANGLE
-	horizon_cos.x = -acos_fast(clamp(horizon_cos.x, -1.0, 1.0));
-	horizon_cos.y = acos_fast(clamp(horizon_cos.y, -1.0, 1.0));
-
-	// Clamp to normal hemisphere
-	// XeGTAO: we can skip clamping for a tiny little bit more performance
-	horizon_cos.x = n + clamp(horizon_cos.x - n, -PI_HALF, PI_HALF);
-	horizon_cos.y = n + clamp(horizon_cos.y - n, -PI_HALF, PI_HALF);
-
-	// The final formula uses `2 * sin(n)` so we precalculate this value
-	float two_sin_norm = 2.0 * sin(n);
-
-	float iarc1 = (cos_norm + horizon_cos.x * two_sin_norm - cos(2.0 * horizon_cos.x - n));
-	float iarc2 = (cos_norm + horizon_cos.y * two_sin_norm - cos(2.0 * horizon_cos.y - n));
-
-	float local_visibility = 0.25 * (iarc1 + iarc2) * proj_normal_len;
+	float local_visibility = 1.0 - float(bit_count(occlusion_bitmask)) / float(BITMASK_SECTOR_COUNT);
 	// Disallow total occlusion
 	local_visibility = max(0.03, local_visibility);
 	return local_visibility;
@@ -318,20 +372,17 @@ void generate_GTAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, o
 	viewspace_radius *= too_close_limit;
 
 	// Multiply the radius by projection[0][0] to make it FOV-independent, same as HBAO
-	float screenspace_radius = clamp(viewspace_radius * params.fov_scale / pix_center_pos.z, float(number_of_taps), GTAO_MAX_SCREEN_RADIUS);
+	// float screenspace_radius = clamp(viewspace_radius * params.fov_scale / pix_center_pos.z, float(number_of_taps), GTAO_MAX_SCREEN_RADIUS);
 
 	// Adjust radius near screen borders to reduce artifacts
-	float near_screen_border = min(min(normalized_screen_pos.x, 1.0 - normalized_screen_pos.x), min(normalized_screen_pos.y, 1.0 - normalized_screen_pos.y));
-	near_screen_border = clamp(10.0 * near_screen_border + 0.6, 0.0, 1.0);
-	screenspace_radius *= near_screen_border;
+	// float near_screen_border = min(min(normalized_screen_pos.x, 1.0 - normalized_screen_pos.x), min(normalized_screen_pos.y, 1.0 - normalized_screen_pos.y));
+	// near_screen_border = clamp(10.0 * near_screen_border + 0.6, 0.0, 1.0);
+	// screenspace_radius *= near_screen_border;
 
-	float step_radius = screenspace_radius / float(number_of_taps);
-	float falloff_range = GTAO_FALLOFF_RANGE * viewspace_radius;
-	float falloff_mul = 1.0 / (falloff_range * falloff_range);
+	float pixel_dir_rb_viewspace_size_at_center_z = pix_z * params.viewport_pixel_size.x * params.NDC_to_view_mul.x;
+	float screenspace_radius = params.radius / pixel_dir_rb_viewspace_size_at_center_z;
 
 	vec2 noise = get_angle_offset_noise(p_pix_coord);
-	// Apply a random offset on to reduce artifacts
-	float offset = noise.y;
 	// Get a random direction on the hemisphere
 	// Screen dir is guaranteed to be already normalized
 	vec2 screen_dir;
@@ -343,9 +394,9 @@ void generate_GTAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, o
 	float weight_sum = 0.0;
 
 	// Calculate AO values for each slice
-	for (uint slice = 0; slice < number_of_slices; ++slice) {
+	for (int slice = 0; slice < number_of_slices; ++slice) {
 		// GTAO inner integral gives visibility, which is one minus obscurance
-		obscurance_sum += 1.0 - GTAO_slice(number_of_taps, normalized_screen_pos, screen_dir, step_radius, offset, pix_center_pos, view_dir, falloff_mul, pixel_normal);
+		obscurance_sum += 1.0 - GTAO_slice(number_of_slices, number_of_taps, slice, noise.y, normalized_screen_pos, screen_dir, screenspace_radius, pix_center_pos, view_dir, pixel_normal);
 		weight_sum += 1.0;
 
 		// XeGTAO calculates screen direction with sincos(angle) every iteration, but that's too slow,
@@ -353,7 +404,6 @@ void generate_GTAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, o
 		vec2 tmp_dir = screen_dir;
 		screen_dir.x = tmp_dir.x * cos_delta_angle - tmp_dir.y * sin_delta_angle;
 		screen_dir.y = tmp_dir.x * sin_delta_angle + tmp_dir.y * cos_delta_angle;
-		offset = fract(offset + 0.617);
 	}
 
 	// calculate weighted average
