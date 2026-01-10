@@ -9,17 +9,6 @@
 layout(set = 0, binding = 0) uniform sampler2D tile_max;
 layout(rgba16f, set = 0, binding = 1) uniform writeonly image2D neighbor_max;
 
-layout(push_constant, std430) uniform Params
-{
-	float nan5;
-	float nan6;
-	float nan7;
-	float nan8;
-	int nan1;
-	int nan2;
-	int nan3;
-	int nan4;
-} params;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -70,5 +59,5 @@ void main()
 		}
 	}
 
-	imageStore(neighbor_max, uvi, vec4(max_neighbor_velocity, 0, 1));
+	imageStore(neighbor_max, uvi, vec4(max_neighbor_velocity, 0, 0));
 }
