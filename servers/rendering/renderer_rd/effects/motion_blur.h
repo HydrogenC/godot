@@ -1,5 +1,36 @@
-﻿#pragma once
+﻿/**************************************************************************/
+/*  bokeh_dof.cpp                                                         */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
 
+#pragma once
+
+#include "copy_effects.h"
 #include "servers/rendering/renderer_rd/pipeline_cache_rd.h"
 #include "servers/rendering/renderer_rd/pipeline_deferred_rd.h"
 #include "servers/rendering/renderer_rd/shaders/effects/motion_blur_blur.glsl.gen.h"
@@ -8,9 +39,11 @@
 #include "servers/rendering/renderer_rd/shaders/effects/motion_blur_tile_max_x.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/motion_blur_tile_max_y.glsl.gen.h"
 #include "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/render_scene_data_rd.h"
 
 #define RB_SCOPE_MOTION_BLUR SNAME("motion_blur")
 
+#define RB_TEX_CUSTOM_VELOCITY SNAME("custom_velocity")
 #define RB_TEX_TILE_MAX_X SNAME("tile_max_x")
 #define RB_TEX_TILE_MAX_Y SNAME("tile_max_y")
 #define RB_TEX_NEIGHBOR_MAX SNAME("neighbor_max")
@@ -41,7 +74,7 @@ private:
 		float movement_velocity_upper_threshold;
 
 		float object_velocity_upper_threshold;
-		float is_fsr2;
+		float support_fsr2;
 		float motion_blur_intensity;
 		float pad;
 	};
@@ -52,15 +85,10 @@ private:
 	};
 
 	struct  MotionBlurBlurPushConstant {
-		float minimum_user_threshold;
-		float importance_bias;
-		float maximum_jitter_value;
 		float motion_blur_intensity;
-
-		int32_t tile_size;
-		int32_t sample_count;
-		int32_t frame;
-		int32_t pad;
+		int sample_count;
+		int frame;
+		int pad;
 	};
 
 	struct {
@@ -87,29 +115,16 @@ private:
 		RID linear_sampler;
 		RID nearest_sampler;
 	} motion_blur;
+
+	int tile_size;
+	const int dispatch_group_size = 16;
+
+	void motion_blur_process(RID base, RID depth, RID velocity, RID scene_data, RID custom_velocity, RID tile_max_x, RID tile_max_y, RID neighbor_max, RID output, Size2i base_size);
 public:
-	struct MotionBlurBuffers {
-		int tile_size;
 
-		Size2i base_texture_size;
-		// (base.x / tile_size, base.y)
-		Size2i tile_x_texture_size;
-		// (base.x / tile_size, base.y / tile_size)
-		Size2i tile_y_texture_size;
-
-		// textures
-		RID base_texture;
-		RID velocity_texture;
-		RID tile_max_x_texture;
-		RID tile_max_y_texture;
-		RID neighbor_max_texture;
-		RID output_texture;
-	};
-
-	MotionBlur();
+	MotionBlur(int p_tile_size);
 	~MotionBlur();
 
-	void allocate_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, MotionBlurBuffers& p_buffers, const Size2i &p_size, int p_tile_size);
-	void motion_blur_compute(const MotionBlurBuffers &p_buffers);
+	void motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RenderSceneDataRD* p_scene_data, CopyEffects* p_copy_effects);
 };
 }

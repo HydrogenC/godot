@@ -33,6 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/io/image.h"
 #include "renderer_compositor_rd.h"
+#include "effects/motion_blur.h"
 #include "servers/rendering/renderer_rd/environment/fog.h"
 #include "servers/rendering/renderer_rd/shaders/decal_data_inc.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/light_data_inc.glsl.gen.h"
@@ -544,6 +545,24 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 			}
 		}
 		RD::get_singleton()->draw_command_end_label();
+	}
+
+    // TODO: remove hardcoded value
+	bool using_motion_blur = true;
+
+	if (using_motion_blur && p_render_data->transparent_bg) {
+		WARN_PRINT_ONCE("Motion blur is not supported in viewports with a transparent background. Disabling motion blur in transparent viewport.");
+		using_motion_blur = false;
+	}
+
+	if (using_motion_blur && !can_use_storage) {
+		WARN_PRINT_ONCE("Motion blur requires storage support in shader. Disabling motion blur in transparent viewport.");
+		using_motion_blur = false;
+	}
+
+	if (can_use_effects && using_motion_blur) {
+		RENDER_TIMESTAMP("Motion Blur");
+		motion_blur->motion_blur_compute(rb, p_render_data->scene_data, copy_effects);
 	}
 
 	float auto_exposure_scale = 1.0;
@@ -1747,6 +1766,8 @@ void RendererSceneRenderRD::init() {
 	}
 
 	bokeh_dof = memnew(RendererRD::BokehDOF(!can_use_storage));
+	// It's OK to hardcode the tile size
+	motion_blur = memnew(RendererRD::MotionBlur(40));
 	copy_effects = memnew(RendererRD::CopyEffects(raster_effects));
 	debug_effects = memnew(RendererRD::DebugEffects);
 	luminance = memnew(RendererRD::Luminance(!can_use_storage));
@@ -1771,6 +1792,9 @@ RendererSceneRenderRD::~RendererSceneRenderRD() {
 
 	if (bokeh_dof) {
 		memdelete(bokeh_dof);
+	}
+	if (motion_blur) {
+		memdelete(motion_blur);
 	}
 	if (copy_effects) {
 		memdelete(copy_effects);

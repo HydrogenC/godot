@@ -10,21 +10,18 @@
 layout(set = 0, binding = 0) uniform sampler2D color_sampler;
 layout(set = 0, binding = 1) uniform sampler2D velocity_sampler;
 layout(set = 0, binding = 2) uniform sampler2D neighbor_max;
-layout(set = 0, binding = 3) uniform sampler2D tile_variance;
-layout(rgba16f, set = 0, binding = 4) uniform writeonly image2D output_color;
-layout(set = 0, binding = 5) uniform sampler2D custom_curve;
+layout(rgba16f, set = 0, binding = 3) uniform writeonly image2D output_color;
 
+#ifdef USE_CUSTOM_CURVE
+layout(set = 0, binding = 4) uniform sampler2D custom_curve;
+#endif
 
 layout(push_constant, std430) uniform Params
 {
 	float motion_blur_intensity;
-	float nan0;
-	float nan1;
-	float nan2;
-	int tile_size;
 	int sample_count;
 	int frame;
-	int use_custom_curve;
+	int pad;
 } params;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -151,12 +148,14 @@ void main()
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
 		float t = mix(-1.0, 1.0, ti);
 
-		float custom_curve_sample = params.use_custom_curve == 1 ? textureLod(custom_curve, vec2(ti, 0.5), 0.0).x : 1;
-
 		// TODO @sphynx-owner: figure out the best blending scheme that would balance seamlessness with intelligent edge case handling.
 		// Right now you get underblurring against occluding geometry, and vectors that match the dominant velocity don't get picked
 		// up as much as they could.
-		float current_total_weight = custom_curve_sample;
+#ifdef USE_CUSTOM_CURVE
+		float current_total_weight = textureLod(custom_curve, vec2(ti, 0.5), 0.0).x;
+#else
+		float current_total_weight = 1.0;
+#endif
 
 		// Background blending (blending of the background onto the current geometry to simulate transparency)
 		// ----------------------------------------------------------------------------------
