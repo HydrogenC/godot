@@ -3,8 +3,12 @@
 #[compute]
 #version 450
 
+#VERSION_DEFINES
+
 #define FLT_MAX 3.402823466e+38
 #define FLT_MIN 1.175494351e-38
+
+#define MAX_VIEWS 2
 
 #include "../scene_data_inc.glsl"
 
