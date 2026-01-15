@@ -30,8 +30,8 @@
 
 #include "camera_attributes.h"
 
-#include "curve_texture.h"
 #include "core/config/project_settings.h"
+#include "curve_texture.h"
 #include "servers/rendering/rendering_server.h"
 
 void CameraAttributes::set_exposure_multiplier(float p_multiplier) {
@@ -109,6 +109,11 @@ void CameraAttributes::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL;
 		return;
 	}
+
+	if (p_property.name.begins_with("motion_blur_") && p_property.name != "motion_blur_enabled" && !motion_blur_enabled) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+		return;
+	}
 }
 
 void CameraAttributes::_bind_methods() {
@@ -146,7 +151,6 @@ CameraAttributes::~CameraAttributes() {
 //////////////////////////////////////////////////////
 /* CameraAttributesPractical */
 
-
 void CameraAttributesPractical::set_motion_blur_enabled(bool p_enabled) {
 	motion_blur_enabled = p_enabled;
 	_update_motion_blur();
@@ -157,6 +161,10 @@ bool CameraAttributesPractical::is_motion_blur_enabled() const {
 }
 
 void CameraAttributesPractical::set_motion_blur_intensity(float p_intensity) {
+	p_intensity = MAX(0.0f, p_intensity);
+	if (motion_blur_intensity == p_intensity) {
+		return;
+	}
 	motion_blur_intensity = p_intensity;
 	_update_motion_blur();
 }
@@ -201,12 +209,12 @@ bool CameraAttributesPractical::is_motion_blur_velocity_depth_test() const {
 	return motion_blur_velocity_depth_test;
 }
 
-void CameraAttributesPractical::set_motion_blur_custom_curve(const Ref<Curve>& p_curve) {
+void CameraAttributesPractical::set_motion_blur_custom_curve(const Ref<Curve> &p_curve) {
 	if (p_curve == motion_blur_custom_curve) {
 		return;
 	}
 
-	RenderingDevice* rd = RS::get_singleton()->get_rendering_device();
+	RenderingDevice *rd = RS::get_singleton()->get_rendering_device();
 	if (motion_blur_custom_curve_rid.is_valid()) {
 		rd->free_rid(motion_blur_custom_curve_rid);
 	}
@@ -418,7 +426,7 @@ void CameraAttributesPractical::_bind_methods() {
 
 	ADD_GROUP("Motion Blur", "motion_blur_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_enabled"), "set_motion_blur_enabled", "is_motion_blur_enabled");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0,20,0.1"), "set_motion_blur_intensity", "get_motion_blur_intensity");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater"), "set_motion_blur_intensity", "get_motion_blur_intensity");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "motion_blur_sample_count", PROPERTY_HINT_RANGE, "1,64,1"), "set_motion_blur_sample_count", "get_motion_blur_sample_count");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_jitter_tiles"), "set_motion_blur_jitter_tiles", "is_motion_blur_jitter_tiles");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_clamp_velocities_to_tile"), "set_motion_blur_clamp_velocities_to_tile", "is_motion_blur_clamp_velocities_to_tile");

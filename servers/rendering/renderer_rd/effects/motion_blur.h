@@ -1,5 +1,5 @@
-﻿/**************************************************************************/
-/*  bokeh_dof.cpp                                                         */
+/**************************************************************************/
+/*  motion_blur.h                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -85,7 +85,7 @@ private:
 		int32_t pad[3];
 	};
 
-	struct  MotionBlurBlurPushConstant {
+	struct MotionBlurBlurPushConstant {
 		float motion_blur_intensity;
 		int32_t sample_count;
 		int32_t frame;
@@ -122,11 +122,11 @@ private:
 
 	int tile_size;
 	void motion_blur_process(float frame_time, RID p_camera_attributes, RID base, RID depth, RID velocity, RID scene_data, RID custom_velocity, RID tile_max_x, RID tile_max_y, RID neighbor_max, RID output, Size2i base_size);
-public:
 
+public:
 	MotionBlur(int p_tile_size);
 	~MotionBlur();
 
-	void motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD* p_scene_data, CopyEffects* p_copy_effects);
+	void motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, CopyEffects *p_copy_effects);
 };
-}
+} //namespace RendererRD
