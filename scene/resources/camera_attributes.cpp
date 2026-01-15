@@ -30,6 +30,7 @@
 
 #include "camera_attributes.h"
 
+#include "curve_texture.h"
 #include "core/config/project_settings.h"
 #include "servers/rendering/rendering_server.h"
 
@@ -145,6 +146,103 @@ CameraAttributes::~CameraAttributes() {
 //////////////////////////////////////////////////////
 /* CameraAttributesPractical */
 
+
+void CameraAttributesPractical::set_motion_blur_enabled(bool p_enabled) {
+	motion_blur_enabled = p_enabled;
+	_update_motion_blur();
+}
+
+bool CameraAttributesPractical::is_motion_blur_enabled() const {
+	return motion_blur_enabled;
+}
+
+void CameraAttributesPractical::set_motion_blur_intensity(float p_intensity) {
+	motion_blur_intensity = p_intensity;
+	_update_motion_blur();
+}
+
+float CameraAttributesPractical::get_motion_blur_intensity() const {
+	return motion_blur_intensity;
+}
+
+void CameraAttributesPractical::set_motion_blur_sample_count(int p_sample_count) {
+	motion_blur_sample_count = p_sample_count;
+	_update_motion_blur();
+}
+
+int CameraAttributesPractical::get_motion_blur_sample_count() const {
+	return motion_blur_sample_count;
+}
+
+void CameraAttributesPractical::set_motion_blur_jitter_tiles(bool p_jitter_tiles) {
+	motion_blur_jitter_tiles = p_jitter_tiles;
+	_update_motion_blur();
+}
+
+bool CameraAttributesPractical::is_motion_blur_jitter_tiles() const {
+	return motion_blur_jitter_tiles;
+}
+
+void CameraAttributesPractical::set_motion_blur_clamp_velocities_to_tile(bool p_clamp_velocities_to_tile) {
+	motion_blur_clamp_velocities_to_tile = p_clamp_velocities_to_tile;
+	_update_motion_blur();
+}
+
+bool CameraAttributesPractical::is_motion_blur_clamp_velocities_to_tile() const {
+	return motion_blur_clamp_velocities_to_tile;
+}
+
+void CameraAttributesPractical::set_motion_blur_velocity_depth_test(bool p_velocity_depth_test) {
+	motion_blur_velocity_depth_test = p_velocity_depth_test;
+	_update_motion_blur();
+}
+
+bool CameraAttributesPractical::is_motion_blur_velocity_depth_test() const {
+	return motion_blur_velocity_depth_test;
+}
+
+void CameraAttributesPractical::set_motion_blur_custom_curve(const Ref<Curve>& p_curve) {
+	if (p_curve == motion_blur_custom_curve) {
+		return;
+	}
+
+	RenderingDevice* rd = RS::get_singleton()->get_rendering_device();
+	if (motion_blur_custom_curve_rid.is_valid()) {
+		rd->free_rid(motion_blur_custom_curve_rid);
+	}
+
+	motion_blur_custom_curve = p_curve;
+
+	if (motion_blur_custom_curve.is_valid()) {
+		CurveTexture curve_texture = CurveTexture();
+		curve_texture.set_curve(motion_blur_custom_curve);
+
+		Ref<Image> curve_image = RS::get_singleton()->texture_2d_get(curve_texture.get_rid());
+		curve_image->clear_mipmaps();
+		curve_image->decompress();
+		curve_image->convert(Image::FORMAT_RGBAF);
+
+		RD::TextureFormat format = {};
+		format.width = curve_image->get_width();
+		format.height = curve_image->get_height();
+		format.depth = 1;
+		format.texture_type = RD::TEXTURE_TYPE_2D;
+		format.format = RD::DATA_FORMAT_R32G32B32A32_SFLOAT;
+		format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
+
+		RD::TextureView paint_texture_view = {};
+		motion_blur_custom_curve_rid = rd->texture_create(format, paint_texture_view, { curve_image->get_data() });
+	} else {
+		motion_blur_custom_curve_rid = RID();
+	}
+
+	_update_motion_blur();
+}
+
+Ref<Curve> CameraAttributesPractical::get_motion_blur_custom_curve() const {
+	return motion_blur_custom_curve;
+}
+
 void CameraAttributesPractical::set_dof_blur_far_enabled(bool p_enabled) {
 	dof_blur_far_enabled = p_enabled;
 	_update_dof_blur();
@@ -210,6 +308,18 @@ float CameraAttributesPractical::get_dof_blur_amount() const {
 	return dof_blur_amount;
 }
 
+void CameraAttributesPractical::_update_motion_blur() {
+	RS::get_singleton()->camera_attributes_set_motion_blur(
+			get_rid(),
+			motion_blur_enabled,
+			motion_blur_intensity,
+			motion_blur_sample_count,
+			motion_blur_jitter_tiles,
+			motion_blur_clamp_velocities_to_tile,
+			motion_blur_velocity_depth_test,
+			motion_blur_custom_curve_rid);
+}
+
 void CameraAttributesPractical::_update_dof_blur() {
 	RS::get_singleton()->camera_attributes_set_dof_blur(
 			get_rid(),
@@ -266,6 +376,23 @@ void CameraAttributesPractical::_validate_property(PropertyInfo &p_property) con
 }
 
 void CameraAttributesPractical::_bind_methods() {
+	// Motion blur
+
+	ClassDB::bind_method(D_METHOD("set_motion_blur_enabled", "enabled"), &CameraAttributesPractical::set_motion_blur_enabled);
+	ClassDB::bind_method(D_METHOD("is_motion_blur_enabled"), &CameraAttributesPractical::is_motion_blur_enabled);
+	ClassDB::bind_method(D_METHOD("set_motion_blur_intensity", "intensity"), &CameraAttributesPractical::set_motion_blur_intensity);
+	ClassDB::bind_method(D_METHOD("get_motion_blur_intensity"), &CameraAttributesPractical::get_motion_blur_intensity);
+	ClassDB::bind_method(D_METHOD("set_motion_blur_sample_count", "sample_count"), &CameraAttributesPractical::set_motion_blur_sample_count);
+	ClassDB::bind_method(D_METHOD("get_motion_blur_sample_count"), &CameraAttributesPractical::get_motion_blur_sample_count);
+	ClassDB::bind_method(D_METHOD("set_motion_blur_jitter_tiles", "jitter_tiles"), &CameraAttributesPractical::set_motion_blur_jitter_tiles);
+	ClassDB::bind_method(D_METHOD("is_motion_blur_jitter_tiles"), &CameraAttributesPractical::is_motion_blur_jitter_tiles);
+	ClassDB::bind_method(D_METHOD("set_motion_blur_clamp_velocities_to_tile", "clamp_velocities_to_tile"), &CameraAttributesPractical::set_motion_blur_clamp_velocities_to_tile);
+	ClassDB::bind_method(D_METHOD("is_motion_blur_clamp_velocities_to_tile"), &CameraAttributesPractical::is_motion_blur_clamp_velocities_to_tile);
+	ClassDB::bind_method(D_METHOD("set_motion_blur_velocity_depth_test", "velocity_depth_test"), &CameraAttributesPractical::set_motion_blur_velocity_depth_test);
+	ClassDB::bind_method(D_METHOD("is_motion_blur_velocity_depth_test"), &CameraAttributesPractical::is_motion_blur_velocity_depth_test);
+	ClassDB::bind_method(D_METHOD("set_motion_blur_custom_curve", "custom_curve"), &CameraAttributesPractical::set_motion_blur_custom_curve);
+	ClassDB::bind_method(D_METHOD("get_motion_blur_custom_curve"), &CameraAttributesPractical::get_motion_blur_custom_curve);
+
 	// DOF blur
 
 	ClassDB::bind_method(D_METHOD("set_dof_blur_far_enabled", "enabled"), &CameraAttributesPractical::set_dof_blur_far_enabled);
@@ -289,6 +416,15 @@ void CameraAttributesPractical::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_auto_exposure_min_sensitivity", "min_sensitivity"), &CameraAttributesPractical::set_auto_exposure_min_sensitivity);
 	ClassDB::bind_method(D_METHOD("get_auto_exposure_min_sensitivity"), &CameraAttributesPractical::get_auto_exposure_min_sensitivity);
 
+	ADD_GROUP("Motion Blur", "motion_blur_");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_enabled"), "set_motion_blur_enabled", "is_motion_blur_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0,20,0.1"), "set_motion_blur_intensity", "get_motion_blur_intensity");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "motion_blur_sample_count", PROPERTY_HINT_RANGE, "1,64,1"), "set_motion_blur_sample_count", "get_motion_blur_sample_count");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_jitter_tiles"), "set_motion_blur_jitter_tiles", "is_motion_blur_jitter_tiles");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_clamp_velocities_to_tile"), "set_motion_blur_clamp_velocities_to_tile", "is_motion_blur_clamp_velocities_to_tile");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_velocity_depth_test"), "set_motion_blur_velocity_depth_test", "is_motion_blur_velocity_depth_test");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "motion_blur_custom_curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve"), "set_motion_blur_custom_curve", "get_motion_blur_custom_curve");
+
 	ADD_GROUP("DOF Blur", "dof_blur_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dof_blur_far_enabled"), "set_dof_blur_far_enabled", "is_dof_blur_far_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "dof_blur_far_distance", PROPERTY_HINT_RANGE, "0.01,8192,0.01,exp,suffix:m"), "set_dof_blur_far_distance", "get_dof_blur_far_distance");
@@ -304,6 +440,7 @@ void CameraAttributesPractical::_bind_methods() {
 }
 
 CameraAttributesPractical::CameraAttributesPractical() {
+	_update_motion_blur();
 	_update_dof_blur();
 	_update_exposure();
 	set_auto_exposure_min_sensitivity(0.0);
@@ -312,6 +449,9 @@ CameraAttributesPractical::CameraAttributesPractical() {
 }
 
 CameraAttributesPractical::~CameraAttributesPractical() {
+	if (motion_blur_custom_curve_rid.is_valid()) {
+		RS::get_singleton()->get_rendering_device()->free_rid(motion_blur_custom_curve_rid);
+	}
 }
 
 //////////////////////////////////////////////////////

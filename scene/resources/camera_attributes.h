@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include "curve.h"
 #include "core/io/resource.h"
 #include "core/templates/rid.h"
 
@@ -78,6 +79,17 @@ class CameraAttributesPractical : public CameraAttributes {
 	GDCLASS(CameraAttributesPractical, CameraAttributes);
 
 private:
+	// Motion blur
+	bool motion_blur_enabled = false;
+	float motion_blur_intensity = 1.0;
+	int motion_blur_sample_count = 8;
+	bool motion_blur_jitter_tiles = true;
+	bool motion_blur_clamp_velocities_to_tile = false;
+	bool motion_blur_velocity_depth_test = true;
+	Ref<Curve> motion_blur_custom_curve = Ref<Curve>();
+	RID motion_blur_custom_curve_rid = RID();
+	void _update_motion_blur();
+
 	// DOF blur
 	bool dof_blur_far_enabled = false;
 	float dof_blur_far_distance = 10.0;
@@ -97,6 +109,22 @@ protected:
 	void _validate_property(PropertyInfo &p_property) const;
 
 public:
+	// Motion blur
+	void set_motion_blur_enabled(bool p_enabled);
+	bool is_motion_blur_enabled() const;
+	void set_motion_blur_intensity(float p_intensity);
+	float get_motion_blur_intensity() const;
+	void set_motion_blur_sample_count(int p_sample_count);
+	int get_motion_blur_sample_count() const;
+	void set_motion_blur_jitter_tiles(bool p_jitter_tiles);
+	bool is_motion_blur_jitter_tiles() const;
+	void set_motion_blur_clamp_velocities_to_tile(bool p_clamp_velocities_to_tile);
+	bool is_motion_blur_clamp_velocities_to_tile() const;
+	void set_motion_blur_velocity_depth_test(bool p_velocity_depth_test);
+	bool is_motion_blur_velocity_depth_test() const;
+	void set_motion_blur_custom_curve(const Ref<Curve>& p_curve);
+	Ref<Curve> get_motion_blur_custom_curve() const;
+
 	// DOF blur
 	void set_dof_blur_far_enabled(bool p_enabled);
 	bool is_dof_blur_far_enabled() const;
