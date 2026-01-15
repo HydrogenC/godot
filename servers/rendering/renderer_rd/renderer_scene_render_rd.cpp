@@ -547,8 +547,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 		RD::get_singleton()->draw_command_end_label();
 	}
 
-    // TODO: remove hardcoded value
-	bool using_motion_blur = true;
+	bool using_motion_blur = RSG::camera_attributes->camera_attributes_uses_motion_blur(p_render_data->camera_attributes);
 
 	if (using_motion_blur && p_render_data->transparent_bg) {
 		WARN_PRINT_ONCE("Motion blur is not supported in viewports with a transparent background. Disabling motion blur in transparent viewport.");
@@ -562,7 +561,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 
 	if (can_use_effects && using_motion_blur) {
 		RENDER_TIMESTAMP("Motion Blur");
-		motion_blur->motion_blur_compute(rb, p_render_data->scene_data, copy_effects);
+		motion_blur->motion_blur_compute(rb, p_render_data->camera_attributes, p_render_data->scene_data, copy_effects);
 	}
 
 	float auto_exposure_scale = 1.0;

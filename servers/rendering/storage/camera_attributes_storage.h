@@ -49,6 +49,14 @@ private:
 		float auto_exposure_scale = 1.0;
 		uint64_t auto_exposure_version = 0;
 
+		bool motion_blur_enabled = false;
+		float motion_blur_intensity = 1.0;
+		int motion_blur_sample_count = 8;
+		bool motion_blur_jitter_tiles = true;
+		bool motion_blur_clamp_velocities_to_tile = false;
+		bool motion_blur_velocity_depth_test = true;
+		RID motion_blur_custom_curve = RID();
+
 		bool dof_blur_far_enabled = false;
 		float dof_blur_far_distance = 10;
 		float dof_blur_far_transition = 5;
@@ -77,6 +85,20 @@ public:
 	RID camera_attributes_allocate();
 	void camera_attributes_initialize(RID p_rid);
 	void camera_attributes_free(RID p_rid);
+
+	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, int p_sample_count, bool p_jitter_tiles, bool p_clamp_velocities_to_tile, bool p_velocity_depth_test, RID p_custom_curve);
+	float camera_attributes_get_motion_blur_intensity(RID p_camera_attributes);
+	int camera_attributes_get_motion_blur_sample_count(RID p_camera_attributes);
+	bool camera_attributes_get_motion_blur_jitter_tiles(RID p_camera_attributes);
+	bool camera_attributes_get_motion_blur_clamp_velocities_to_tile(RID p_camera_attributes);
+	bool camera_attributes_get_motion_blur_velocity_depth_test(RID p_camera_attributes);
+	RID camera_attributes_get_motion_blur_custom_curve(RID p_camera_attributes);
+
+	_FORCE_INLINE_ bool camera_attributes_uses_motion_blur(RID p_camera_attributes) {
+		CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
+
+		return cam_attributes && cam_attributes->motion_blur_enabled && cam_attributes->motion_blur_intensity > 0.0;
+	}
 
 	void camera_attributes_set_dof_blur_quality(RS::DOFBlurQuality p_quality, bool p_use_jitter);
 	void camera_attributes_set_dof_blur_bokeh_shape(RS::DOFBokehShape p_shape);

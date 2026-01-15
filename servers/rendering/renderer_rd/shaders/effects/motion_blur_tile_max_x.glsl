@@ -57,7 +57,5 @@ void main()
 		}
 	}
 
-	// TODO @sphynx-owner: replace the buffer with a red-green buffer only,
-	// no need to store depth and z velocity here.
 	imageStore(tile_max_x, uvi, max_velocity);
 }
