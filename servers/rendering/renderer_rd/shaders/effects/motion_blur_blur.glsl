@@ -210,7 +210,11 @@ void main()
 
 		float neg_t = -t;
 
-		float custom_curve_sample = params.use_custom_curve == 1 ? textureLod(custom_curve, vec2(ti, 0.5), 0.0).x : 1;
+#ifdef USE_CUSTOM_CURVE
+		float custom_curve_sample = textureLod(custom_curve, vec2(ti, 0.5), 0.0).x;
+#else
+		float custom_curve_sample = 1;
+#endif
 
 		float current_total_weight = custom_curve_sample;
 
