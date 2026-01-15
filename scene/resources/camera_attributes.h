@@ -30,15 +30,12 @@
 
 #pragma once
 
-#include "curve.h"
 #include "core/io/resource.h"
 #include "core/templates/rid.h"
+#include "curve.h"
 
 class CameraAttributes : public Resource {
 	GDCLASS(CameraAttributes, Resource);
-
-private:
-	RID camera_attributes;
 
 protected:
 	static void _bind_methods();
@@ -71,9 +68,21 @@ public:
 	void set_auto_exposure_scale(float p_auto_exposure_scale);
 	float get_auto_exposure_scale() const;
 
+	enum MotionBlurQuality {
+		MOTION_BLUR_QUALITY_LOW,
+		MOTION_BLUR_QUALITY_MEDIUM,
+		MOTION_BLUR_QUALITY_HIGH,
+	};
+
 	CameraAttributes();
 	~CameraAttributes();
+
+private:
+	RID camera_attributes;
+	CameraAttributes::MotionBlurQuality motion_blur_quality = MOTION_BLUR_QUALITY_MEDIUM;
 };
+
+VARIANT_ENUM_CAST(CameraAttributes::MotionBlurQuality);
 
 class CameraAttributesPractical : public CameraAttributes {
 	GDCLASS(CameraAttributesPractical, CameraAttributes);
@@ -112,6 +121,8 @@ public:
 	// Motion blur
 	void set_motion_blur_enabled(bool p_enabled);
 	bool is_motion_blur_enabled() const;
+	void set_motion_blur_quality(int p_quality);
+	int get_motion_blur_quality() const;
 	void set_motion_blur_intensity(float p_intensity);
 	float get_motion_blur_intensity() const;
 	void set_motion_blur_sample_count(int p_sample_count);
@@ -122,7 +133,7 @@ public:
 	bool is_motion_blur_clamp_velocities_to_tile() const;
 	void set_motion_blur_velocity_depth_test(bool p_velocity_depth_test);
 	bool is_motion_blur_velocity_depth_test() const;
-	void set_motion_blur_custom_curve(const Ref<Curve>& p_curve);
+	void set_motion_blur_custom_curve(const Ref<Curve> &p_curve);
 	Ref<Curve> get_motion_blur_custom_curve() const;
 
 	// DOF blur

@@ -1,5 +1,5 @@
-﻿/**************************************************************************/
-/*  bokeh_dof.cpp                                                         */
+/**************************************************************************/
+/*  motion_blur.cpp                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -114,13 +114,13 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, motion_blur.pipelines[MOTION_BLUR_PREPROCESS].get_rid());
 
 	{
-		RD::Uniform depth_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, {motion_blur.nearest_sampler, depth});
-		RD::Uniform velocity_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 1, {motion_blur.nearest_sampler, velocity});
+		RD::Uniform depth_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, { motion_blur.nearest_sampler, depth });
+		RD::Uniform velocity_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 1, { motion_blur.nearest_sampler, velocity });
 		RD::Uniform custom_velocity_image = RD::Uniform(RD::UNIFORM_TYPE_IMAGE, 2, custom_velocity);
 		RD::Uniform scene_data_uniform = RD::Uniform(RD::UNIFORM_TYPE_UNIFORM_BUFFER, 5, scene_data);
 
 		RD::get_singleton()->compute_list_bind_uniform_set(compute_list,
-			uniform_set_cache->get_cache(shader, 0, depth_texture_uniform, velocity_texture_uniform, custom_velocity_image, scene_data_uniform), 0);
+				uniform_set_cache->get_cache(shader, 0, depth_texture_uniform, velocity_texture_uniform, custom_velocity_image, scene_data_uniform), 0);
 
 		MotionBlurPreprocessPushConstant preprocess_push_constant;
 		// Hardcode these values since they are very internal and seldom requires change
@@ -151,12 +151,12 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	ERR_FAIL_COND(shader.is_null());
 
 	{
-		RD::Uniform custom_velocity_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, {motion_blur.nearest_sampler, custom_velocity});
-		RD::Uniform depth_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 1, {motion_blur.nearest_sampler, depth});
+		RD::Uniform custom_velocity_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, { motion_blur.nearest_sampler, custom_velocity });
+		RD::Uniform depth_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 1, { motion_blur.nearest_sampler, depth });
 		RD::Uniform tile_max_x_image = RD::Uniform(RD::UNIFORM_TYPE_IMAGE, 2, tile_max_x);
 
 		RD::get_singleton()->compute_list_bind_uniform_set(compute_list,
-			uniform_set_cache->get_cache(shader, 0, custom_velocity_uniform, depth_texture_uniform, tile_max_x_image), 0);
+				uniform_set_cache->get_cache(shader, 0, custom_velocity_uniform, depth_texture_uniform, tile_max_x_image), 0);
 
 		// Clear push constant
 		RD::get_singleton()->compute_list_set_push_constant(compute_list, nullptr, 0);
@@ -171,11 +171,11 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	ERR_FAIL_COND(shader.is_null());
 
 	{
-		RD::Uniform tile_max_x_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, {motion_blur.nearest_sampler, tile_max_x});
+		RD::Uniform tile_max_x_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, { motion_blur.nearest_sampler, tile_max_x });
 		RD::Uniform tile_max_y_image = RD::Uniform(RD::UNIFORM_TYPE_IMAGE, 1, tile_max_y);
 
 		RD::get_singleton()->compute_list_bind_uniform_set(compute_list,
-			uniform_set_cache->get_cache(shader, 0, tile_max_x_uniform, tile_max_y_image), 0);
+				uniform_set_cache->get_cache(shader, 0, tile_max_x_uniform, tile_max_y_image), 0);
 	}
 
 	RD::get_singleton()->compute_list_dispatch_threads(compute_list, tiled_size.x, tiled_size.y, 1);
@@ -187,11 +187,11 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	ERR_FAIL_COND(shader.is_null());
 
 	{
-		RD::Uniform tile_max_y_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, {motion_blur.nearest_sampler, tile_max_y});
+		RD::Uniform tile_max_y_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, { motion_blur.nearest_sampler, tile_max_y });
 		RD::Uniform neighbor_max_image = RD::Uniform(RD::UNIFORM_TYPE_IMAGE, 1, neighbor_max);
 
 		RD::get_singleton()->compute_list_bind_uniform_set(compute_list,
-			uniform_set_cache->get_cache(shader, 0, tile_max_y_uniform, neighbor_max_image), 0);
+				uniform_set_cache->get_cache(shader, 0, tile_max_y_uniform, neighbor_max_image), 0);
 	}
 
 	RD::get_singleton()->compute_list_dispatch_threads(compute_list, tiled_size.x, tiled_size.y, 1);
@@ -212,18 +212,18 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	ERR_FAIL_COND(shader.is_null());
 
 	{
-		RD::Uniform color_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, {motion_blur.nearest_sampler, base});
-		RD::Uniform custom_velocity_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 1, {motion_blur.nearest_sampler, custom_velocity});
-		RD::Uniform neighbor_max_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 2, {motion_blur.nearest_sampler, neighbor_max});
+		RD::Uniform color_texture_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, { motion_blur.nearest_sampler, base });
+		RD::Uniform custom_velocity_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 1, { motion_blur.nearest_sampler, custom_velocity });
+		RD::Uniform neighbor_max_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 2, { motion_blur.nearest_sampler, neighbor_max });
 		RD::Uniform output_image = RD::Uniform(RD::UNIFORM_TYPE_IMAGE, 3, output);
 
 		if (pipeline_index == MOTION_BLUR_BLUR_CUSTOM_CURVE) {
-			RD::Uniform custom_curve_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 4, {motion_blur.linear_sampler, custom_curve});
+			RD::Uniform custom_curve_uniform = RD::Uniform(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 4, { motion_blur.linear_sampler, custom_curve });
 			RD::get_singleton()->compute_list_bind_uniform_set(compute_list,
-				uniform_set_cache->get_cache(shader, 0, color_texture_uniform, custom_velocity_uniform, neighbor_max_uniform, output_image, custom_curve_uniform), 0);
+					uniform_set_cache->get_cache(shader, 0, color_texture_uniform, custom_velocity_uniform, neighbor_max_uniform, output_image, custom_curve_uniform), 0);
 		} else {
 			RD::get_singleton()->compute_list_bind_uniform_set(compute_list,
-				uniform_set_cache->get_cache(shader, 0, color_texture_uniform, custom_velocity_uniform, neighbor_max_uniform, output_image), 0);
+					uniform_set_cache->get_cache(shader, 0, color_texture_uniform, custom_velocity_uniform, neighbor_max_uniform, output_image), 0);
 		}
 
 		MotionBlurBlurPushConstant blur_push_constant;
@@ -240,7 +240,7 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	RD::get_singleton()->compute_list_end();
 }
 
-void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD* p_scene_data, CopyEffects* p_copy_effects) {
+void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, CopyEffects *p_copy_effects) {
 	Size2i base_size = p_render_buffers->get_internal_size();
 	uint32_t view_count = p_render_buffers->get_view_count();
 
@@ -271,7 +271,6 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 		// Pong the blurred texture back to the internal texture
 		p_copy_effects->copy_to_rect(output, base_texture, Rect2i(Point2i(), base_size));
 	}
-
 
 	RD::get_singleton()->draw_command_end_label();
 }
