@@ -103,6 +103,10 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	int sample_count = RSG::camera_attributes->camera_attributes_get_motion_blur_sample_count(p_camera_attributes);
 	RID custom_curve = RSG::camera_attributes->camera_attributes_get_motion_blur_custom_curve(p_camera_attributes);
 
+	bool jitter_tiles = RSG::camera_attributes->camera_attributes_get_motion_blur_jitter_tiles(p_camera_attributes);
+	bool clamp_velocities_to_tile = RSG::camera_attributes->camera_attributes_get_motion_blur_clamp_velocities_to_tile(p_camera_attributes);
+	bool velocity_depth_test = RSG::camera_attributes->camera_attributes_get_motion_blur_velocity_depth_test(p_camera_attributes);
+
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
 	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
 
@@ -230,6 +234,9 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 		blur_push_constant.motion_blur_intensity = intensity;
 		blur_push_constant.sample_count = sample_count;
 		blur_push_constant.frame = Engine::get_singleton()->get_frames_drawn() % 8;
+		blur_push_constant.jitter_tiles = jitter_tiles ? 1 : 0;
+		blur_push_constant.clamp_velocities_to_tile = clamp_velocities_to_tile ? 1 : 0;
+		blur_push_constant.velocity_depth_test = velocity_depth_test ? 1 : 0;
 
 		RD::get_singleton()->compute_list_set_push_constant(compute_list, &blur_push_constant, sizeof(MotionBlurBlurPushConstant));
 	}
