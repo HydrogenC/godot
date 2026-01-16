@@ -109,11 +109,6 @@ void CameraAttributes::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL;
 		return;
 	}
-
-	if (p_property.name.begins_with("motion_blur_") && p_property.name != "motion_blur_enabled" && !motion_blur_enabled) {
-		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
-		return;
-	}
 }
 
 void CameraAttributes::_bind_methods() {
@@ -377,9 +372,15 @@ void CameraAttributesPractical::_validate_property(PropertyInfo &p_property) con
 	if (!Engine::get_singleton()->is_editor_hint()) {
 		return;
 	}
+
 	if ((p_property.name != "dof_blur_far_enabled" && !dof_blur_far_enabled && p_property.name.begins_with("dof_blur_far_")) ||
 			(p_property.name != "dof_blur_near_enabled" && !dof_blur_near_enabled && p_property.name.begins_with("dof_blur_near_"))) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
+
+	if (p_property.name.begins_with("motion_blur_") && p_property.name != "motion_blur_enabled" && !motion_blur_enabled) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+		return;
 	}
 }
 
