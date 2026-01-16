@@ -871,7 +871,7 @@ public:
 
 	FUNCRIDSPLIT(camera_attributes)
 
-	FUNC8(camera_attributes_set_motion_blur, RID, bool, float, int, bool, bool, bool, RID)
+	FUNC9(camera_attributes_set_motion_blur, RID, bool, float, MotionBlurTileLevel, MotionBlurQuality, bool, bool, bool, RID)
 
 	FUNC2(camera_attributes_set_dof_blur_quality, DOFBlurQuality, bool)
 	FUNC1(camera_attributes_set_dof_blur_bokeh_shape, DOFBokehShape)

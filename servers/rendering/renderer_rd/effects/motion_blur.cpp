@@ -99,7 +99,7 @@ RendererRD::MotionBlur::~MotionBlur() {
 	RD::get_singleton()->free_rid(motion_blur.linear_sampler);
 }
 
-void RendererRD::MotionBlur::motion_blur_process(const MotionBlurBuffers& p_buffers) {
+void RendererRD::MotionBlur::motion_blur_process(const MotionBlurBuffers &p_buffers) {
 	UniformSetCacheRD *uniform_set_cache = UniformSetCacheRD::get_singleton();
 	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
 
@@ -218,13 +218,7 @@ void RendererRD::MotionBlur::motion_blur_process(const MotionBlurBuffers& p_buff
 	RD::get_singleton()->compute_list_end();
 }
 
-void RendererRD::MotionBlur::check_tile_size(int new_tile_size) {
-	if (tile_size == new_tile_size) {
-		return;
-	}
-
-	tile_size = new_tile_size;
-
+void RendererRD::MotionBlur::recreate_pipelines() {
 	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_X].free();
 	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_Y].free();
 	motion_blur.pipelines[MOTION_BLUR_BLUR].free();
@@ -244,9 +238,31 @@ void RendererRD::MotionBlur::check_tile_size(int new_tile_size) {
 }
 
 void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, bool transparent_bg, CopyEffects *p_copy_effects) {
-	// TODO: fetch this from camera attributes
-	int new_tile_size = 60;
-	check_tile_size(new_tile_size);
+	int new_tile_size;
+	switch (RSG::camera_attributes->camera_attributes_get_motion_blur_tile_level(p_camera_attributes)) {
+		case RS::MOTION_BLUR_TILE_LEVEL_SMALL:
+			new_tile_size = 20;
+			break;
+		case RS::MOTION_BLUR_TILE_LEVEL_MEDIUM:
+			new_tile_size = 40;
+			break;
+		case RS::MOTION_BLUR_TILE_LEVEL_LARGE:
+			new_tile_size = 60;
+			break;
+		case RS::MOTION_BLUR_TILE_LEVEL_EXTRA_LARGE:
+			new_tile_size = 80;
+			break;
+		default:
+			WARN_PRINT_ONCE("Unknown motion blur tile level.");
+			new_tile_size = 40;
+			break;
+	}
+
+	if (tile_size != new_tile_size) {
+		tile_size = new_tile_size;
+		p_render_buffers->clear_context(RB_SCOPE_MOTION_BLUR);
+		recreate_pipelines();
+	}
 
 	Size2i base_size = p_render_buffers->get_internal_size();
 	Size2i tiled_size = Size2i(Math::division_round_up(base_size.width, tile_size), Math::division_round_up(base_size.height, tile_size));
@@ -270,9 +286,8 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 		float intensity = RSG::camera_attributes->camera_attributes_get_motion_blur_intensity(p_camera_attributes);
 		// Framerate independent
 		intensity *= p_scene_data->time_step / (1.f / 30);
-		int quality = RSG::camera_attributes->camera_attributes_get_motion_blur_quality(p_camera_attributes);
 		int sample_count;
-		switch (quality) {
+		switch (RSG::camera_attributes->camera_attributes_get_motion_blur_quality(p_camera_attributes)) {
 			case RenderingServer::MOTION_BLUR_QUALITY_LOW:
 				sample_count = 4;
 				break;

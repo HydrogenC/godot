@@ -158,6 +158,19 @@ bool CameraAttributesPractical::is_motion_blur_enabled() const {
 	return motion_blur_enabled;
 }
 
+void CameraAttributesPractical::set_motion_blur_tile_level(int p_tile_level) {
+	p_tile_level = CLAMP(p_tile_level, RS::MOTION_BLUR_TILE_LEVEL_SMALL, RS::MOTION_BLUR_TILE_LEVEL_EXTRA_LARGE);
+	if (motion_blur_tile_level == p_tile_level) {
+		return;
+	}
+	motion_blur_tile_level = p_tile_level;
+	_update_motion_blur();
+}
+
+int CameraAttributesPractical::get_motion_blur_tile_level() const {
+	return motion_blur_tile_level;
+}
+
 void CameraAttributesPractical::set_motion_blur_quality(int p_quality) {
 	p_quality = CLAMP(p_quality, RS::MOTION_BLUR_QUALITY_LOW, RS::MOTION_BLUR_QUALITY_HIGH);
 	RS::MotionBlurQuality quality = (RS::MotionBlurQuality)p_quality;
@@ -324,6 +337,7 @@ void CameraAttributesPractical::_update_motion_blur() {
 			get_rid(),
 			motion_blur_enabled,
 			motion_blur_intensity,
+			(RS::MotionBlurTileLevel)motion_blur_tile_level,
 			(RS::MotionBlurQuality)motion_blur_quality,
 			motion_blur_jitter_tiles,
 			motion_blur_clamp_velocities_to_tile,
@@ -399,6 +413,8 @@ void CameraAttributesPractical::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_motion_blur_enabled"), &CameraAttributesPractical::is_motion_blur_enabled);
 	ClassDB::bind_method(D_METHOD("set_motion_blur_intensity", "intensity"), &CameraAttributesPractical::set_motion_blur_intensity);
 	ClassDB::bind_method(D_METHOD("get_motion_blur_intensity"), &CameraAttributesPractical::get_motion_blur_intensity);
+	ClassDB::bind_method(D_METHOD("set_motion_blur_tile_level", "tile_level"), &CameraAttributesPractical::set_motion_blur_tile_level);
+	ClassDB::bind_method(D_METHOD("get_motion_blur_tile_level"), &CameraAttributesPractical::get_motion_blur_tile_level);
 	ClassDB::bind_method(D_METHOD("set_motion_blur_quality", "quality"), &CameraAttributesPractical::set_motion_blur_quality);
 	ClassDB::bind_method(D_METHOD("get_motion_blur_quality"), &CameraAttributesPractical::get_motion_blur_quality);
 	ClassDB::bind_method(D_METHOD("set_motion_blur_jitter_tiles", "jitter_tiles"), &CameraAttributesPractical::set_motion_blur_jitter_tiles);
@@ -436,6 +452,7 @@ void CameraAttributesPractical::_bind_methods() {
 	ADD_GROUP("Motion Blur", "motion_blur_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_enabled"), "set_motion_blur_enabled", "is_motion_blur_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater"), "set_motion_blur_intensity", "get_motion_blur_intensity");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "motion_blur_tile_level", PROPERTY_HINT_ENUM, "Small,Medium,Large,Extra Large"), "set_motion_blur_tile_level", "get_motion_blur_tile_level");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "motion_blur_quality", PROPERTY_HINT_ENUM, "Low,Medium,High"), "set_motion_blur_quality", "get_motion_blur_quality");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_jitter_tiles"), "set_motion_blur_jitter_tiles", "is_motion_blur_jitter_tiles");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_clamp_velocities_to_tile"), "set_motion_blur_clamp_velocities_to_tile", "is_motion_blur_clamp_velocities_to_tile");

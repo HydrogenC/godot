@@ -1,4 +1,4 @@
-﻿// Adapted from https://github.com/sphynx-owner/godot-motion-blur-addon-simplified/blob/master/addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_sphynx_blur.glsl
+// Adapted from https://github.com/sphynx-owner/godot-motion-blur-addon-simplified/blob/master/addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_sphynx_blur.glsl
 
 #[compute]
 #version 450
@@ -20,8 +20,7 @@ layout(set = 0, binding = 4) uniform sampler2D custom_curve;
 
 layout(constant_id = 0) const int tile_size = 40;
 
-layout(push_constant, std430) uniform Params
-{
+layout(push_constant, std430) uniform Params {
 	float motion_blur_intensity;
 	int sample_count;
 	int frame;
@@ -30,24 +29,24 @@ layout(push_constant, std430) uniform Params
 	int velocity_depth_test;
 	int transparent_bg;
 	int pad;
-} params;
+}
+params;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 // Guertin's functions https://research.nvidia.com/sites/default/files/pubs/2013-11_A-Fast-and/Guertin2013MotionBlur-small.pdf
 // ----------------------------------------------------------
-float soft_compare(float a, float b, float sze)
-{
+float soft_compare(float a, float b, float sze) {
 	return clamp(sze * (a - b), 0, 1);
 }
 // ----------------------------------------------------------
 
 // from https://www.shadertoy.com/view/ftKfzc
 // ----------------------------------------------------------
-float interleaved_gradient_noise(vec2 uv){
+float interleaved_gradient_noise(vec2 uv) {
 	uv += float(params.frame) * (vec2(47, 17) * 0.695);
 
-	vec3 magic = vec3( 0.06711056, 0.00583715, 52.9829189 );
+	vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
 
 	return fract(magic.z * fract(dot(uv, magic.xy)));
 }
@@ -55,14 +54,12 @@ float interleaved_gradient_noise(vec2 uv){
 
 // from https://github.com/bradparks/KinoMotion__unity_motion_blur/tree/master
 // ----------------------------------------------------------
-vec2 safenorm(vec2 v)
-{
+vec2 safenorm(vec2 v) {
 	float l = max(length(v), 1e-6);
 	return v / l * int(l >= 0.5);
 }
 
-vec2 jitter_tile(vec2 uvi)
-{
+vec2 jitter_tile(vec2 uvi) {
 	float rx, ry;
 	float angle = interleaved_gradient_noise(uvi + vec2(2, 0)) * M_PI * 2;
 	rx = cos(angle);
@@ -71,13 +68,11 @@ vec2 jitter_tile(vec2 uvi)
 }
 // ----------------------------------------------------------
 
-vec4 sample_velocity(sampler2D velocity_texture, vec2 uv)
-{
+vec4 sample_velocity(sampler2D velocity_texture, vec2 uv) {
 	return textureLod(velocity_texture, uv, 0.0) * vec4(vec2(params.motion_blur_intensity), 1, 1);
 }
 
-vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render_size, out float x_weight)
-{
+vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render_size, out float x_weight) {
 	vec2 yx = x + t * vx / vec2(render_size);
 
 	vec4 vyzwx = sample_velocity(velocity_sampler, yx);
@@ -106,8 +101,7 @@ vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_
 
 	float vyn_length = max(0.5, length(vyn));
 
-	if(params.clamp_velocities_to_tile == 1)
-	{
+	if (params.clamp_velocities_to_tile == 1) {
 		float clamp_ratio = max(vyn_length / tile_size, 1.0);
 		vyn /= clamp_ratio;
 		vyn_length /= clamp_ratio;
@@ -121,17 +115,17 @@ vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_
 }
 
 void blend_blur(
-	vec4 base_color,
-	vec4 x_sample,
-	float x_weight,
-	vec4 neg_x_sample,
-	float neg_x_weight,
-	vec4 y_sample,
-	float y_weight,
-	float weight_modifier,
-	inout vec4 color_sum,
-	inout float color_weight,
-	inout float alpha_weight) {
+		vec4 base_color,
+		vec4 x_sample,
+		float x_weight,
+		vec4 neg_x_sample,
+		float neg_x_weight,
+		vec4 y_sample,
+		float y_weight,
+		float weight_modifier,
+		inout vec4 color_sum,
+		inout float color_weight,
+		inout float alpha_weight) {
 	float current_weight_x = max(x_weight, neg_x_weight);
 
 	vec4 x_color_sample = mix(neg_x_sample, x_sample, clamp(x_weight / neg_x_weight, 0, 1));
@@ -149,8 +143,7 @@ void blend_blur(
 	alpha_weight += current_alpha_weight;
 }
 
-void main()
-{
+void main() {
 	// The size of the output texture
 	ivec2 render_size = ivec2(textureSize(color_sampler, 0));
 
@@ -159,8 +152,7 @@ void main()
 
 	// If the pixel we are in is outside the target render's size, we
 	// exit early
-	if ((uvi.x >= render_size.x) || (uvi.y >= render_size.y))
-	{
+	if ((uvi.x >= render_size.x) || (uvi.y >= render_size.y)) {
 		return;
 	}
 
@@ -186,8 +178,7 @@ void main()
 
 	float vx_length = length(vx);
 
-	if(params.clamp_velocities_to_tile == 1)
-	{
+	if (params.clamp_velocities_to_tile == 1) {
 		float clamp_ratio = max(vn_length / tile_size, 1.0);
 		vn /= clamp_ratio;
 		vn_length /= clamp_ratio;
@@ -200,8 +191,7 @@ void main()
 	// We must account for cases where the dominant velocity is 0 even though
 	// The current velocity is not. This is only the case for the skybox, which
 	// Will never overlap geometry so it can safely be ignored when calculating neighbor_max
-	if(vn_length < 0.5)
-	{
+	if (vn_length < 0.5) {
 		imageStore(output_color, uvi, base_color);
 		return;
 	}
@@ -224,8 +214,7 @@ void main()
 	// Create an initial color sum
 	vec4 sum = vec4(base_color.xyx * base_color.a * color_weight, base_color.a * alpha_weight);
 
-	for(int i = 0; i < params.sample_count; i++)
-	{
+	for (int i = 0; i < params.sample_count; i++) {
 		float ti = (i + j) / params.sample_count;
 
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
