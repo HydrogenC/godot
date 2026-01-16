@@ -50,6 +50,7 @@ private:
 		uint64_t auto_exposure_version = 0;
 
 		bool motion_blur_enabled = false;
+		RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;
 		float motion_blur_intensity = 1.0;
 		bool motion_blur_jitter_tiles = true;
 		bool motion_blur_clamp_velocities_to_tile = false;
