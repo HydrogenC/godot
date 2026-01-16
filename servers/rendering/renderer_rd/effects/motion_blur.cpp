@@ -236,7 +236,23 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 		float intensity = RSG::camera_attributes->camera_attributes_get_motion_blur_intensity(p_camera_attributes);
 		// Framerate independent
 		intensity *= p_scene_data->time_step / (1.f / 30);
-		int sample_count = RSG::camera_attributes->camera_attributes_get_motion_blur_sample_count(p_camera_attributes);
+		int quality = RSG::camera_attributes->camera_attributes_get_motion_blur_quality(p_camera_attributes);
+		int sample_count;
+		switch (quality) {
+			case RenderingServer::MOTION_BLUR_QUALITY_LOW:
+				sample_count = 4;
+				break;
+			case RenderingServer::MOTION_BLUR_QUALITY_MEDIUM:
+				sample_count = 8;
+				break;
+			case RenderingServer::MOTION_BLUR_QUALITY_HIGH:
+				sample_count = 16;
+				break;
+			default:
+				WARN_PRINT_ONCE("Unknown motion blur quality setting, defaulting to medium.");
+				sample_count = 8;
+				break;
+		}
 
 		bool jitter_tiles = RSG::camera_attributes->camera_attributes_get_motion_blur_jitter_tiles(p_camera_attributes);
 		bool clamp_velocities_to_tile = RSG::camera_attributes->camera_attributes_get_motion_blur_clamp_velocities_to_tile(p_camera_attributes);
