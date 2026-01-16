@@ -19,7 +19,6 @@ layout(constant_id = 0) const int tile_size = 40;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-
 void main() {
 	ivec2 render_size = ivec2(textureSize(tile_max_x, 0));
 	ivec2 output_size = imageSize(tile_max);
