@@ -74,6 +74,8 @@ public:
 		MOTION_BLUR_QUALITY_HIGH,
 	};
 
+	bool motion_blur_enabled = false;
+
 	CameraAttributes();
 	~CameraAttributes();
 
@@ -89,9 +91,7 @@ class CameraAttributesPractical : public CameraAttributes {
 
 private:
 	// Motion blur
-	bool motion_blur_enabled = false;
 	float motion_blur_intensity = 1.0;
-	int motion_blur_sample_count = 8;
 	bool motion_blur_jitter_tiles = true;
 	bool motion_blur_clamp_velocities_to_tile = false;
 	bool motion_blur_velocity_depth_test = true;
@@ -125,8 +125,6 @@ public:
 	int get_motion_blur_quality() const;
 	void set_motion_blur_intensity(float p_intensity);
 	float get_motion_blur_intensity() const;
-	void set_motion_blur_sample_count(int p_sample_count);
-	int get_motion_blur_sample_count() const;
 	void set_motion_blur_jitter_tiles(bool p_jitter_tiles);
 	bool is_motion_blur_jitter_tiles() const;
 	void set_motion_blur_clamp_velocities_to_tile(bool p_clamp_velocities_to_tile);
