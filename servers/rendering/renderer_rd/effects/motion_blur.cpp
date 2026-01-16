@@ -100,7 +100,7 @@ void RendererRD::MotionBlur::motion_blur_process(float frame_time, RID p_camera_
 	float intensity = RSG::camera_attributes->camera_attributes_get_motion_blur_intensity(p_camera_attributes);
 	// Framerate independent
 	intensity *= frame_time / (1.f / 30);
-	int sample_count = RSG::camera_attributes->camera_attributes_get_motion_blur_sample_count(p_camera_attributes);
+	int quality = RSG::camera_attributes->camera_attributes_get_motion_blur_sample_count(p_camera_attributes);
 	RID custom_curve = RSG::camera_attributes->camera_attributes_get_motion_blur_custom_curve(p_camera_attributes);
 
 	bool jitter_tiles = RSG::camera_attributes->camera_attributes_get_motion_blur_jitter_tiles(p_camera_attributes);
