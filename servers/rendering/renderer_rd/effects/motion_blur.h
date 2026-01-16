@@ -80,11 +80,6 @@ private:
 		float pad;
 	};
 
-	struct MotionBlurTileMaxPushConstant {
-		int32_t tile_size;
-		int32_t pad[3];
-	};
-
 	struct MotionBlurBlurPushConstant {
 		float motion_blur_intensity;
 		int32_t sample_count;
@@ -92,12 +87,12 @@ private:
 		int32_t jitter_tiles;
 		int32_t clamp_velocities_to_tile;
 		int32_t velocity_depth_test;
-		int32_t pad[2];
+		int32_t transparent_bg;
+		int32_t pad;
 	};
 
 	struct {
 		MotionBlurPreprocessPushConstant preprocess_push_constant;
-		MotionBlurTileMaxPushConstant tile_max_push_constant;
 		MotionBlurBlurPushConstant blur_push_constant;
 
 		MotionBlurPreprocessShaderRD preprocess_shader;
@@ -120,13 +115,31 @@ private:
 		RID nearest_sampler;
 	} motion_blur;
 
+	struct MotionBlurBuffers {
+		Size2i base_size;
+		Size2i tiled_size;
+
+		RID custom_curve;
+		RID scene_data_uniform;
+
+		// Textures and images
+		RID base_texture;
+		RID depth_texture;
+		RID velocity_texture;
+		RID custom_velocity_texture;
+		RID tile_max_x_texture;
+		RID tile_max_y_texture;
+		RID neighbor_max_texture;
+		RID blur_output_texture;
+	};
+
 	int tile_size;
-	void motion_blur_process(float frame_time, RID p_camera_attributes, RID base, RID depth, RID velocity, RID scene_data, RID custom_velocity, RID tile_max_x, RID tile_max_y, RID neighbor_max, RID output, Size2i base_size);
+	void motion_blur_process(const MotionBlurBuffers& p_buffers);
 
 public:
 	MotionBlur(int p_tile_size);
 	~MotionBlur();
 
-	void motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, CopyEffects *p_copy_effects);
+	void motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, bool transparent_bg, CopyEffects *p_copy_effects);
 };
 } //namespace RendererRD
