@@ -100,8 +100,6 @@ bool RendererCameraAttributes::camera_attributes_get_motion_blur_velocity_depth_
 	return cam_attributes->motion_blur_velocity_depth_test;
 }
 
-
-
 RID RendererCameraAttributes::camera_attributes_get_motion_blur_custom_curve(RID p_camera_attributes) {
 	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
 	ERR_FAIL_NULL_V(cam_attributes, RID());
