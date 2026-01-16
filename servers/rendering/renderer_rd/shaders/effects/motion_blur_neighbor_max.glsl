@@ -1,4 +1,4 @@
-﻿// Adapted from https://github.com/sphynx-owner/godot-motion-blur-addon-simplified/blob/master/addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_neighbor_max.glsl
+// Adapted from https://github.com/sphynx-owner/godot-motion-blur-addon-simplified/blob/master/addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_neighbor_max.glsl
 
 #[compute]
 #version 450
@@ -13,12 +13,10 @@ layout(rgba16f, set = 0, binding = 1) uniform writeonly image2D neighbor_max;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-void main()
-{
+void main() {
 	ivec2 render_size = ivec2(textureSize(tile_max, 0));
 	ivec2 uvi = ivec2(gl_GlobalInvocationID.xy);
-	if ((uvi.x >= render_size.x) || (uvi.y >= render_size.y))
-	{
+	if ((uvi.x >= render_size.x) || (uvi.y >= render_size.y)) {
 		return;
 	}
 
@@ -28,14 +26,11 @@ void main()
 
 	float max_neighbor_velocity_length = 0;
 
-	for(int i = -1; i < 2; i++)
-	{
-		for(int j = -1; j < 2; j++)
-		{
+	for (int i = -1; i < 2; i++) {
+		for (int j = -1; j < 2; j++) {
 			vec2 current_offset = vec2(1) / vec2(render_size) * vec2(i, j);
 			vec2 current_uv = uvn + current_offset;
-			if(current_uv.x < 0 || current_uv.x > 1 || current_uv.y < 0 || current_uv.y > 1)
-			{
+			if (current_uv.x < 0 || current_uv.x > 1 || current_uv.y < 0 || current_uv.y > 1) {
 				continue;
 			}
 
@@ -45,14 +40,12 @@ void main()
 
 			bool facing_center = dot(current_neighbor_velocity, current_offset) > 0;
 
-			if(is_diagonal && !facing_center)
-			{
+			if (is_diagonal && !facing_center) {
 				continue;
 			}
 
 			float current_neighbor_velocity_length = dot(current_neighbor_velocity, current_neighbor_velocity);
-			if(current_neighbor_velocity_length > max_neighbor_velocity_length)
-			{
+			if (current_neighbor_velocity_length > max_neighbor_velocity_length) {
 				max_neighbor_velocity_length = current_neighbor_velocity_length;
 				max_neighbor_velocity = current_neighbor_velocity;
 			}
