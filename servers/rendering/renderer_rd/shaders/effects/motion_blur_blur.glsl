@@ -24,11 +24,11 @@ layout(push_constant, std430) uniform Params {
 	float motion_blur_intensity;
 	int sample_count;
 	int frame;
-	int jitter_tiles;
 	int clamp_velocities_to_tile;
-	int velocity_depth_test;
 	int transparent_bg;
-	int pad;
+	int pad1;
+	int pad2;
+	int pad3;
 }
 params;
 
@@ -79,7 +79,7 @@ vec4 sample_x_velocity(vec2 x, float t, vec2 vx, float z, float zx, ivec2 render
 
 	float zyx = vyzwx.w;
 
-	x_weight = 1 - soft_compare(z + (params.velocity_depth_test == 1 ? zx * t : 0), zyx, -10);
+	x_weight = 1 - soft_compare(z + zx * t, zyx, -10);
 
 	return textureLod(color_sampler, yx, 0.0);
 }
@@ -93,7 +93,7 @@ vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_
 
 	float zyn = vyzwn.w;
 
-	float overlapn = 1 - soft_compare(zyn - (params.velocity_depth_test == 1 ? vyzwn.z * t : 0), z, -10);
+	float overlapn = 1 - soft_compare(zyn - vyzwn.z, z, -10);
 
 	vec2 wyn = safenorm(vyn);
 
@@ -163,7 +163,7 @@ void main() {
 
 	// We get the neighbor-max velocity for the tile we are in, with some jitter
 	// between tiles to hide seams between them.
-	vec4 vnzw = sample_velocity(neighbor_max, x + (params.jitter_tiles == 1 ? jitter_tile(uvi) : vec2(0)));
+	vec4 vnzw = sample_velocity(neighbor_max, x + jitter_tile(uvi));
 
 	vec2 vn = vnzw.xy;
 

@@ -430,9 +430,7 @@ void CameraAttributesPractical::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater"), "set_motion_blur_intensity", "get_motion_blur_intensity");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "motion_blur_tile_level", PROPERTY_HINT_ENUM, "Small,Medium,Large,Extra Large"), "set_motion_blur_tile_level", "get_motion_blur_tile_level");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "motion_blur_quality", PROPERTY_HINT_ENUM, "Low,Medium,High"), "set_motion_blur_quality", "get_motion_blur_quality");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_jitter_tiles"), "set_motion_blur_jitter_tiles", "is_motion_blur_jitter_tiles");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_clamp_velocities_to_tile"), "set_motion_blur_clamp_velocities_to_tile", "is_motion_blur_clamp_velocities_to_tile");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_velocity_depth_test"), "set_motion_blur_velocity_depth_test", "is_motion_blur_velocity_depth_test");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "motion_blur_custom_curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve"), "set_motion_blur_custom_curve", "get_motion_blur_custom_curve");
 
 	ADD_GROUP("DOF Blur", "dof_blur_");
