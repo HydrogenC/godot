@@ -81,7 +81,6 @@ public:
 
 private:
 	RID camera_attributes;
-	CameraAttributes::MotionBlurQuality motion_blur_quality = MOTION_BLUR_QUALITY_MEDIUM;
 };
 
 VARIANT_ENUM_CAST(CameraAttributes::MotionBlurQuality);
@@ -91,6 +90,7 @@ class CameraAttributesPractical : public CameraAttributes {
 
 private:
 	// Motion blur
+	MotionBlurQuality motion_blur_quality = MOTION_BLUR_QUALITY_MEDIUM;
 	float motion_blur_intensity = 1.0;
 	bool motion_blur_jitter_tiles = true;
 	bool motion_blur_clamp_velocities_to_tile = false;
