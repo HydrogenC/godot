@@ -68,14 +68,6 @@ public:
 	void set_auto_exposure_scale(float p_auto_exposure_scale);
 	float get_auto_exposure_scale() const;
 
-	enum MotionBlurQuality {
-		MOTION_BLUR_QUALITY_LOW,
-		MOTION_BLUR_QUALITY_MEDIUM,
-		MOTION_BLUR_QUALITY_HIGH,
-	};
-
-	bool motion_blur_enabled = false;
-
 	CameraAttributes();
 	~CameraAttributes();
 
@@ -83,14 +75,13 @@ private:
 	RID camera_attributes;
 };
 
-VARIANT_ENUM_CAST(CameraAttributes::MotionBlurQuality);
-
 class CameraAttributesPractical : public CameraAttributes {
 	GDCLASS(CameraAttributesPractical, CameraAttributes);
 
 private:
 	// Motion blur
-	MotionBlurQuality motion_blur_quality = MOTION_BLUR_QUALITY_MEDIUM;
+	int motion_blur_quality = 1;
+	bool motion_blur_enabled = false;
 	float motion_blur_intensity = 1.0;
 	bool motion_blur_jitter_tiles = true;
 	bool motion_blur_clamp_velocities_to_tile = false;

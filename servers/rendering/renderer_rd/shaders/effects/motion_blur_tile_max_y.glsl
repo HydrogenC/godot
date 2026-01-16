@@ -15,6 +15,8 @@
 layout(set = 0, binding = 0) uniform sampler2D tile_max_x;
 layout(rgba16f, set = 0, binding = 1) uniform writeonly image2D tile_max;
 
+layout(constant_id = 0) const int tile_size = 40;
+
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 

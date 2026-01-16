@@ -159,8 +159,8 @@ bool CameraAttributesPractical::is_motion_blur_enabled() const {
 }
 
 void CameraAttributesPractical::set_motion_blur_quality(int p_quality) {
-	p_quality = CLAMP(p_quality, MOTION_BLUR_QUALITY_LOW, MOTION_BLUR_QUALITY_HIGH);
-	MotionBlurQuality quality = (MotionBlurQuality)p_quality;
+	p_quality = CLAMP(p_quality, RS::MOTION_BLUR_QUALITY_LOW, RS::MOTION_BLUR_QUALITY_HIGH);
+	RS::MotionBlurQuality quality = (RS::MotionBlurQuality)p_quality;
 	if (motion_blur_quality == quality) {
 		return;
 	}
@@ -169,7 +169,7 @@ void CameraAttributesPractical::set_motion_blur_quality(int p_quality) {
 }
 
 int CameraAttributesPractical::get_motion_blur_quality() const {
-	return int(motion_blur_quality);
+	return motion_blur_quality;
 }
 
 void CameraAttributesPractical::set_motion_blur_intensity(float p_intensity) {
@@ -324,7 +324,7 @@ void CameraAttributesPractical::_update_motion_blur() {
 			get_rid(),
 			motion_blur_enabled,
 			motion_blur_intensity,
-			motion_blur_quality,
+			(RS::MotionBlurQuality)motion_blur_quality,
 			motion_blur_jitter_tiles,
 			motion_blur_clamp_velocities_to_tile,
 			motion_blur_velocity_depth_test,

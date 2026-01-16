@@ -18,6 +18,8 @@ layout(rgba16f, set = 0, binding = 3) uniform writeonly image2D output_color;
 layout(set = 0, binding = 4) uniform sampler2D custom_curve;
 #endif
 
+layout(constant_id = 0) const int tile_size = 40;
+
 layout(push_constant, std430) uniform Params
 {
 	float motion_blur_intensity;
@@ -106,7 +108,7 @@ vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_
 
 	if(params.clamp_velocities_to_tile == 1)
 	{
-		float clamp_ratio = max(vyn_length / TILE_SIZE, 1.0);
+		float clamp_ratio = max(vyn_length / tile_size, 1.0);
 		vyn /= clamp_ratio;
 		vyn_length /= clamp_ratio;
 	}
@@ -186,11 +188,11 @@ void main()
 
 	if(params.clamp_velocities_to_tile == 1)
 	{
-		float clamp_ratio = max(vn_length / TILE_SIZE, 1.0);
+		float clamp_ratio = max(vn_length / tile_size, 1.0);
 		vn /= clamp_ratio;
 		vn_length /= clamp_ratio;
 
-		clamp_ratio = max(vx_length / TILE_SIZE, 1.0);
+		clamp_ratio = max(vx_length / tile_size, 1.0);
 		vx /= clamp_ratio;
 		vx_length /= clamp_ratio;
 	}
