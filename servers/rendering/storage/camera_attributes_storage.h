@@ -53,9 +53,7 @@ private:
 		RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;
 		RS::MotionBlurTileLevel motion_blur_tile_level = RS::MOTION_BLUR_TILE_LEVEL_MEDIUM;
 		float motion_blur_intensity = 1.0;
-		bool motion_blur_jitter_tiles = true;
 		bool motion_blur_clamp_velocities_to_tile = false;
-		bool motion_blur_velocity_depth_test = true;
 		RID motion_blur_custom_curve = RID();
 
 		bool dof_blur_far_enabled = false;
@@ -87,7 +85,7 @@ public:
 	void camera_attributes_initialize(RID p_rid);
 	void camera_attributes_free(RID p_rid);
 
-	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, RS::MotionBlurTileLevel p_tile_level, RS::MotionBlurQuality p_quality, bool p_jitter_tiles, bool p_clamp_velocities_to_tile, bool p_velocity_depth_test, RID p_custom_curve);
+	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, RS::MotionBlurTileLevel p_tile_level, RS::MotionBlurQuality p_quality, bool p_clamp_velocities_to_tile, RID p_custom_curve);
 	float camera_attributes_get_motion_blur_intensity(RID p_camera_attributes);
 	RS::MotionBlurTileLevel camera_attributes_get_motion_blur_tile_level(RID p_camera_attributes);
 	RS::MotionBlurQuality camera_attributes_get_motion_blur_quality(RID p_camera_attributes);

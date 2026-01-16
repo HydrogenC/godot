@@ -86,7 +86,7 @@ private:
 		int32_t frame;
 		int32_t clamp_velocities_to_tile;
 		int32_t transparent_bg;
-		int32_t pad;
+		int32_t pad[3];
 	};
 
 	struct {
