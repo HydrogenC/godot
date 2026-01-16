@@ -1398,13 +1398,13 @@ public:
 
 	virtual RID camera_attributes_create() = 0;
 
-	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, int p_quality, bool p_jitter_tiles, bool p_clamp_velocities_to_tile, bool p_velocity_depth_test, RID p_custom_curve) = 0;
-
 	enum MotionBlurQuality {
 		MOTION_BLUR_QUALITY_LOW,
 		MOTION_BLUR_QUALITY_MEDIUM,
 		MOTION_BLUR_QUALITY_HIGH,
 	};
+
+	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, MotionBlurQuality p_quality, bool p_jitter_tiles, bool p_clamp_velocities_to_tile, bool p_velocity_depth_test, RID p_custom_curve) = 0;
 
 	enum DOFBlurQuality {
 		DOF_BLUR_QUALITY_VERY_LOW,
