@@ -84,9 +84,7 @@ private:
 		float motion_blur_intensity;
 		int32_t sample_count;
 		int32_t frame;
-		int32_t jitter_tiles;
 		int32_t clamp_velocities_to_tile;
-		int32_t velocity_depth_test;
 		int32_t transparent_bg;
 		int32_t pad;
 	};

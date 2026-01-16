@@ -119,12 +119,8 @@ public:
 	int get_motion_blur_quality() const;
 	void set_motion_blur_intensity(float p_intensity);
 	float get_motion_blur_intensity() const;
-	void set_motion_blur_jitter_tiles(bool p_jitter_tiles);
-	bool is_motion_blur_jitter_tiles() const;
 	void set_motion_blur_clamp_velocities_to_tile(bool p_clamp_velocities_to_tile);
 	bool is_motion_blur_clamp_velocities_to_tile() const;
-	void set_motion_blur_velocity_depth_test(bool p_velocity_depth_test);
-	bool is_motion_blur_velocity_depth_test() const;
 	void set_motion_blur_custom_curve(const Ref<Curve> &p_curve);
 	Ref<Curve> get_motion_blur_custom_curve() const;
 

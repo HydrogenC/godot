@@ -198,15 +198,6 @@ float CameraAttributesPractical::get_motion_blur_intensity() const {
 	return motion_blur_intensity;
 }
 
-void CameraAttributesPractical::set_motion_blur_jitter_tiles(bool p_jitter_tiles) {
-	motion_blur_jitter_tiles = p_jitter_tiles;
-	_update_motion_blur();
-}
-
-bool CameraAttributesPractical::is_motion_blur_jitter_tiles() const {
-	return motion_blur_jitter_tiles;
-}
-
 void CameraAttributesPractical::set_motion_blur_clamp_velocities_to_tile(bool p_clamp_velocities_to_tile) {
 	motion_blur_clamp_velocities_to_tile = p_clamp_velocities_to_tile;
 	_update_motion_blur();
@@ -214,15 +205,6 @@ void CameraAttributesPractical::set_motion_blur_clamp_velocities_to_tile(bool p_
 
 bool CameraAttributesPractical::is_motion_blur_clamp_velocities_to_tile() const {
 	return motion_blur_clamp_velocities_to_tile;
-}
-
-void CameraAttributesPractical::set_motion_blur_velocity_depth_test(bool p_velocity_depth_test) {
-	motion_blur_velocity_depth_test = p_velocity_depth_test;
-	_update_motion_blur();
-}
-
-bool CameraAttributesPractical::is_motion_blur_velocity_depth_test() const {
-	return motion_blur_velocity_depth_test;
 }
 
 void CameraAttributesPractical::set_motion_blur_custom_curve(const Ref<Curve> &p_curve) {
@@ -339,9 +321,7 @@ void CameraAttributesPractical::_update_motion_blur() {
 			motion_blur_intensity,
 			(RS::MotionBlurTileLevel)motion_blur_tile_level,
 			(RS::MotionBlurQuality)motion_blur_quality,
-			motion_blur_jitter_tiles,
 			motion_blur_clamp_velocities_to_tile,
-			motion_blur_velocity_depth_test,
 			motion_blur_custom_curve_rid);
 }
 
@@ -417,12 +397,8 @@ void CameraAttributesPractical::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_motion_blur_tile_level"), &CameraAttributesPractical::get_motion_blur_tile_level);
 	ClassDB::bind_method(D_METHOD("set_motion_blur_quality", "quality"), &CameraAttributesPractical::set_motion_blur_quality);
 	ClassDB::bind_method(D_METHOD("get_motion_blur_quality"), &CameraAttributesPractical::get_motion_blur_quality);
-	ClassDB::bind_method(D_METHOD("set_motion_blur_jitter_tiles", "jitter_tiles"), &CameraAttributesPractical::set_motion_blur_jitter_tiles);
-	ClassDB::bind_method(D_METHOD("is_motion_blur_jitter_tiles"), &CameraAttributesPractical::is_motion_blur_jitter_tiles);
 	ClassDB::bind_method(D_METHOD("set_motion_blur_clamp_velocities_to_tile", "clamp_velocities_to_tile"), &CameraAttributesPractical::set_motion_blur_clamp_velocities_to_tile);
 	ClassDB::bind_method(D_METHOD("is_motion_blur_clamp_velocities_to_tile"), &CameraAttributesPractical::is_motion_blur_clamp_velocities_to_tile);
-	ClassDB::bind_method(D_METHOD("set_motion_blur_velocity_depth_test", "velocity_depth_test"), &CameraAttributesPractical::set_motion_blur_velocity_depth_test);
-	ClassDB::bind_method(D_METHOD("is_motion_blur_velocity_depth_test"), &CameraAttributesPractical::is_motion_blur_velocity_depth_test);
 	ClassDB::bind_method(D_METHOD("set_motion_blur_custom_curve", "custom_curve"), &CameraAttributesPractical::set_motion_blur_custom_curve);
 	ClassDB::bind_method(D_METHOD("get_motion_blur_custom_curve"), &CameraAttributesPractical::get_motion_blur_custom_curve);
 
