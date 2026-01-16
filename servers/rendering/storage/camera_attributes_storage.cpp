@@ -89,22 +89,10 @@ RS::MotionBlurQuality RendererCameraAttributes::camera_attributes_get_motion_blu
 	return cam_attributes->motion_blur_quality;
 }
 
-bool RendererCameraAttributes::camera_attributes_get_motion_blur_jitter_tiles(RID p_camera_attributes) {
-	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
-	ERR_FAIL_NULL_V(cam_attributes, true);
-	return cam_attributes->motion_blur_jitter_tiles;
-}
-
 bool RendererCameraAttributes::camera_attributes_get_motion_blur_clamp_velocities_to_tile(RID p_camera_attributes) {
 	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
 	ERR_FAIL_NULL_V(cam_attributes, false);
 	return cam_attributes->motion_blur_clamp_velocities_to_tile;
-}
-
-bool RendererCameraAttributes::camera_attributes_get_motion_blur_velocity_depth_test(RID p_camera_attributes) {
-	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
-	ERR_FAIL_NULL_V(cam_attributes, true);
-	return cam_attributes->motion_blur_velocity_depth_test;
 }
 
 RID RendererCameraAttributes::camera_attributes_get_motion_blur_custom_curve(RID p_camera_attributes) {

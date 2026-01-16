@@ -91,9 +91,7 @@ public:
 	float camera_attributes_get_motion_blur_intensity(RID p_camera_attributes);
 	RS::MotionBlurTileLevel camera_attributes_get_motion_blur_tile_level(RID p_camera_attributes);
 	RS::MotionBlurQuality camera_attributes_get_motion_blur_quality(RID p_camera_attributes);
-	bool camera_attributes_get_motion_blur_jitter_tiles(RID p_camera_attributes);
 	bool camera_attributes_get_motion_blur_clamp_velocities_to_tile(RID p_camera_attributes);
-	bool camera_attributes_get_motion_blur_velocity_depth_test(RID p_camera_attributes);
 	RID camera_attributes_get_motion_blur_custom_curve(RID p_camera_attributes);
 
 	_FORCE_INLINE_ bool camera_attributes_uses_motion_blur(RID p_camera_attributes) {

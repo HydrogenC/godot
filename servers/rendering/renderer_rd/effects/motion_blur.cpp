@@ -302,10 +302,7 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 				sample_count = 8;
 				break;
 		}
-
-		bool jitter_tiles = RSG::camera_attributes->camera_attributes_get_motion_blur_jitter_tiles(p_camera_attributes);
 		bool clamp_velocities_to_tile = RSG::camera_attributes->camera_attributes_get_motion_blur_clamp_velocities_to_tile(p_camera_attributes);
-		bool velocity_depth_test = RSG::camera_attributes->camera_attributes_get_motion_blur_velocity_depth_test(p_camera_attributes);
 
 		// Hardcode these values since they are very internal and seldom requires change
 		motion_blur.preprocess_push_constant.movement_velocity_multiplier = 1.0f;
@@ -323,9 +320,7 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 		motion_blur.blur_push_constant.motion_blur_intensity = intensity;
 		motion_blur.blur_push_constant.sample_count = sample_count;
 		motion_blur.blur_push_constant.frame = Engine::get_singleton()->get_frames_drawn() % 8;
-		motion_blur.blur_push_constant.jitter_tiles = jitter_tiles ? 1 : 0;
 		motion_blur.blur_push_constant.clamp_velocities_to_tile = clamp_velocities_to_tile ? 1 : 0;
-		motion_blur.blur_push_constant.velocity_depth_test = velocity_depth_test ? 1 : 0;
 		motion_blur.blur_push_constant.transparent_bg = transparent_bg ? 1 : 0;
 	}
 

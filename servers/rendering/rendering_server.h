@@ -1411,7 +1411,7 @@ public:
 		MOTION_BLUR_TILE_LEVEL_EXTRA_LARGE,
 	};
 
-	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, MotionBlurTileLevel p_tile_level, MotionBlurQuality p_quality, bool p_jitter_tiles, bool p_clamp_velocities_to_tile, bool p_velocity_depth_test, RID p_custom_curve) = 0;
+	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, MotionBlurTileLevel p_tile_level, MotionBlurQuality p_quality, bool p_clamp_velocities_to_tile, RID p_custom_curve) = 0;
 
 	enum DOFBlurQuality {
 		DOF_BLUR_QUALITY_VERY_LOW,
