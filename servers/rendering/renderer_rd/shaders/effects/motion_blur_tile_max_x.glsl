@@ -1,4 +1,4 @@
-﻿// Adapted from https://github.com/sphynx-owner/godot-motion-blur-addon-simplified/blob/master/addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_tile_max_x.glsl
+// Adapted from https://github.com/sphynx-owner/godot-motion-blur-addon-simplified/blob/master/addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_tile_max_x.glsl
 
 #[compute]
 #version 450
@@ -21,14 +21,12 @@ layout(constant_id = 0) const int tile_size = 40;
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 
-void main()
-{
+void main() {
 	ivec2 render_size = ivec2(textureSize(velocity_sampler, 0));
 	ivec2 output_size = imageSize(tile_max_x);
 	ivec2 uvi = ivec2(gl_GlobalInvocationID.xy);
 	ivec2 global_uvi = uvi * ivec2(TILE_SIZE, 1);
-	if ((uvi.x >= output_size.x) || (uvi.y >= output_size.y) || (global_uvi.x >= render_size.x) || (global_uvi.y >= render_size.y))
-	{
+	if ((uvi.x >= output_size.x) || (uvi.y >= output_size.y) || (global_uvi.x >= render_size.x) || (global_uvi.y >= render_size.y)) {
 		return;
 	}
 
@@ -38,8 +36,7 @@ void main()
 
 	float max_velocity_length = -1;
 
-	for(int i = 0; i < TILE_SIZE; i++)
-	{
+	for (int i = 0; i < TILE_SIZE; i++) {
 		vec2 current_uv = uvn + vec2(float(i) / render_size.x, 0);
 		vec4 velocity_sample = textureLod(velocity_sampler, current_uv, 0.0);
 
@@ -52,8 +49,7 @@ void main()
 		// }
 
 		float current_velocity_length = dot(velocity_sample.xy, velocity_sample.xy);
-		if(current_velocity_length > max_velocity_length)
-		{
+		if (current_velocity_length > max_velocity_length) {
 			max_velocity_length = current_velocity_length;
 			max_velocity = vec4(velocity_sample.xy, 0, 0);
 		}

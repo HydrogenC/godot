@@ -134,8 +134,8 @@ private:
 	};
 
 	int tile_size;
-	void motion_blur_process(const MotionBlurBuffers& p_buffers);
-	void check_tile_size(int new_tile_size);
+	void motion_blur_process(const MotionBlurBuffers &p_buffers);
+	void recreate_pipelines();
 
 public:
 	MotionBlur(int p_tile_size);

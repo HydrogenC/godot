@@ -80,6 +80,7 @@ class CameraAttributesPractical : public CameraAttributes {
 
 private:
 	// Motion blur
+	int motion_blur_tile_level = 1;
 	int motion_blur_quality = 1;
 	bool motion_blur_enabled = false;
 	float motion_blur_intensity = 1.0;
@@ -112,6 +113,8 @@ public:
 	// Motion blur
 	void set_motion_blur_enabled(bool p_enabled);
 	bool is_motion_blur_enabled() const;
+	void set_motion_blur_tile_level(int p_tile_level);
+	int get_motion_blur_tile_level() const;
 	void set_motion_blur_quality(int p_quality);
 	int get_motion_blur_quality() const;
 	void set_motion_blur_intensity(float p_intensity);
