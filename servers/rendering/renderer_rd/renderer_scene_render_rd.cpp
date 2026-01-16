@@ -32,8 +32,8 @@
 
 #include "core/config/project_settings.h"
 #include "core/io/image.h"
-#include "renderer_compositor_rd.h"
 #include "effects/motion_blur.h"
+#include "renderer_compositor_rd.h"
 #include "servers/rendering/renderer_rd/environment/fog.h"
 #include "servers/rendering/renderer_rd/shaders/decal_data_inc.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/light_data_inc.glsl.gen.h"
