@@ -1413,6 +1413,9 @@ public:
 
 	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, MotionBlurTileLevel p_tile_level, MotionBlurQuality p_quality, bool p_clamp_velocities_to_tile, RID p_custom_curve) = 0;
 
+	virtual void camera_attributes_set_motion_blur_quality(MotionBlurQuality p_quality);
+	virtual void camera_attributes_set_motion_blur_tile_level(MotionBlurTileLevel p_tile_level);
+
 	enum DOFBlurQuality {
 		DOF_BLUR_QUALITY_VERY_LOW,
 		DOF_BLUR_QUALITY_LOW,
