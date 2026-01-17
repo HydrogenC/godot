@@ -1713,6 +1713,9 @@ void RendererSceneRenderRD::init() {
 		RendererRD::Fog::get_singleton()->init_fog_shader(RendererRD::LightStorage::get_singleton()->get_max_directional_lights(), get_roughness_layers(), is_using_radiance_octmap_array());
 	}
 
+	RSG::camera_attributes->camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_quality"))));
+	RSG::camera_attributes->camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_tile_size"))));
+
 	RSG::camera_attributes->camera_attributes_set_dof_blur_bokeh_shape(RS::DOFBokehShape(int(GLOBAL_GET("rendering/camera/depth_of_field/depth_of_field_bokeh_shape"))));
 	RSG::camera_attributes->camera_attributes_set_dof_blur_quality(RS::DOFBlurQuality(int(GLOBAL_GET("rendering/camera/depth_of_field/depth_of_field_bokeh_quality"))), GLOBAL_GET("rendering/camera/depth_of_field/depth_of_field_use_jitter"));
 	use_physical_light_units = GLOBAL_GET("rendering/lights_and_shadows/use_physical_light_units");

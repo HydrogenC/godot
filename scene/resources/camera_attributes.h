@@ -80,13 +80,9 @@ class CameraAttributesPractical : public CameraAttributes {
 
 private:
 	// Motion blur
-	int motion_blur_tile_level = 1;
-	int motion_blur_quality = 1;
 	bool motion_blur_enabled = false;
 	float motion_blur_intensity = 1.0;
-	bool motion_blur_jitter_tiles = true;
 	bool motion_blur_clamp_velocities_to_tile = false;
-	bool motion_blur_velocity_depth_test = true;
 	Ref<Curve> motion_blur_custom_curve = Ref<Curve>();
 	RID motion_blur_custom_curve_rid = RID();
 	void _update_motion_blur();
@@ -113,10 +109,6 @@ public:
 	// Motion blur
 	void set_motion_blur_enabled(bool p_enabled);
 	bool is_motion_blur_enabled() const;
-	void set_motion_blur_tile_level(int p_tile_level);
-	int get_motion_blur_tile_level() const;
-	void set_motion_blur_quality(int p_quality);
-	int get_motion_blur_quality() const;
 	void set_motion_blur_intensity(float p_intensity);
 	float get_motion_blur_intensity() const;
 	void set_motion_blur_clamp_velocities_to_tile(bool p_clamp_velocities_to_tile);
