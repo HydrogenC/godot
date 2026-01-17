@@ -3214,13 +3214,15 @@ void RenderingServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("camera_attributes_create"), &RenderingServer::camera_attributes_create);
 
-	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur", "camera_attributes", "enabled", "intensity", "tile_level", "quality", "clamp_velocities_to_tile", "custom_curve"), &RenderingServer::camera_attributes_set_motion_blur);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_dof_blur_quality", "quality", "use_jitter"), &RenderingServer::camera_attributes_set_dof_blur_quality);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_dof_blur_bokeh_shape", "shape"), &RenderingServer::camera_attributes_set_dof_blur_bokeh_shape);
+	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_quality", "quality"), &RenderingServer::camera_attributes_set_motion_blur_quality);
+	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_tile_level", "tile_level"), &RenderingServer::camera_attributes_set_motion_blur_tile_level);
 
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_dof_blur", "camera_attributes", "far_enable", "far_distance", "far_transition", "near_enable", "near_distance", "near_transition", "amount"), &RenderingServer::camera_attributes_set_dof_blur);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_exposure", "camera_attributes", "multiplier", "normalization"), &RenderingServer::camera_attributes_set_exposure);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_auto_exposure", "camera_attributes", "enable", "min_sensitivity", "max_sensitivity", "speed", "scale"), &RenderingServer::camera_attributes_set_auto_exposure);
+	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur", "camera_attributes", "enabled", "intensity", "tile_level", "quality", "clamp_velocities_to_tile", "custom_curve"), &RenderingServer::camera_attributes_set_motion_blur);
 
 	BIND_ENUM_CONSTANT(DOF_BOKEH_BOX);
 	BIND_ENUM_CONSTANT(DOF_BOKEH_HEXAGON);
@@ -3230,6 +3232,15 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_LOW);
 	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_MEDIUM);
 	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_HIGH);
+
+	BIND_ENUM_CONSTANT(MOTION_BLUR_QUALITY_LOW);
+	BIND_ENUM_CONSTANT(MOTION_BLUR_QUALITY_MEDIUM);
+	BIND_ENUM_CONSTANT(MOTION_BLUR_QUALITY_HIGH);
+
+	BIND_ENUM_CONSTANT(MOTION_BLUR_TILE_LEVEL_SMALL);
+	BIND_ENUM_CONSTANT(MOTION_BLUR_TILE_LEVEL_MEDIUM);
+	BIND_ENUM_CONSTANT(MOTION_BLUR_TILE_LEVEL_LARGE);
+	BIND_ENUM_CONSTANT(MOTION_BLUR_TILE_LEVEL_EXTRA_LARGE);
 
 	/* SCENARIO */
 
