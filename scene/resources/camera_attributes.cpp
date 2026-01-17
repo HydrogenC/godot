@@ -152,6 +152,7 @@ void CameraAttributesPractical::set_motion_blur_enabled(bool p_enabled) {
 	}
 	motion_blur_enabled = p_enabled;
 	_update_motion_blur();
+	notify_property_list_changed();
 }
 
 bool CameraAttributesPractical::is_motion_blur_enabled() const {
@@ -199,6 +200,9 @@ float CameraAttributesPractical::get_motion_blur_intensity() const {
 }
 
 void CameraAttributesPractical::set_motion_blur_clamp_velocities_to_tile(bool p_clamp_velocities_to_tile) {
+	if (motion_blur_clamp_velocities_to_tile = p_clamp_velocities_to_tile) {
+		return;
+	}
 	motion_blur_clamp_velocities_to_tile = p_clamp_velocities_to_tile;
 	_update_motion_blur();
 }
