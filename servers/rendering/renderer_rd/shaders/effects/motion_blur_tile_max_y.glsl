@@ -30,10 +30,6 @@
 
 #VERSION_DEFINES
 
-#ifndef TILE_SIZE
-#define TILE_SIZE 16
-#endif
-
 #define FLT_MAX 3.402823466e+38
 #define FLT_MIN 1.175494351e-38
 
@@ -48,7 +44,10 @@ void main() {
 	ivec2 render_size = ivec2(textureSize(tile_max_x, 0));
 	ivec2 output_size = imageSize(tile_max);
 	ivec2 uvi = ivec2(gl_GlobalInvocationID.xy);
-	ivec2 global_uvi = uvi * ivec2(1, TILE_SIZE);
+
+	// HydrogenC: copy it out in advance to avoid creating OpSpecConstantComposite, which is unsupported
+	int tile_size_ = tile_size;
+	ivec2 global_uvi = uvi * ivec2(1, tile_size_);
 	if ((uvi.x >= output_size.x) || (uvi.y >= output_size.y) || (global_uvi.x >= render_size.x) || (global_uvi.y >= render_size.y)) {
 		return;
 	}
@@ -59,7 +58,7 @@ void main() {
 
 	float max_velocity_length = -1;
 
-	for (int i = 0; i < TILE_SIZE; i++) {
+	for (int i = 0; i < tile_size; i++) {
 		vec2 current_uv = uvn + vec2(0, float(i) / render_size.y);
 		vec2 velocity_sample = textureLod(tile_max_x, current_uv, 0.0).xy;
 		float current_velocity_length = dot(velocity_sample, velocity_sample);
