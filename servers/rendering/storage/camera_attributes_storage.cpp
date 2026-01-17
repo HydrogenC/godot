@@ -53,7 +53,15 @@ void RendererCameraAttributes::camera_attributes_free(RID p_rid) {
 	camera_attributes_owner.free(p_rid);
 }
 
-void RendererCameraAttributes::camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, RS::MotionBlurTileLevel p_tile_level, RS::MotionBlurQuality p_quality, bool p_clamp_velocities_to_tile, RID p_custom_curve) {
+void RendererCameraAttributes::camera_attributes_set_motion_blur_quality(RenderingServer::MotionBlurQuality p_quality) {
+	motion_blur_quality = p_quality;
+}
+
+void RendererCameraAttributes::camera_attributes_set_motion_blur_tile_size(RenderingServer::MotionBlurTileSize p_tile_size) {
+	motion_blur_tile_size = p_tile_size;
+}
+
+void RendererCameraAttributes::camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, RID p_custom_curve) {
 	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
 	ERR_FAIL_NULL(cam_attributes);
 #ifdef DEBUG_ENABLED
@@ -63,8 +71,6 @@ void RendererCameraAttributes::camera_attributes_set_motion_blur(RID p_camera_at
 #endif
 	cam_attributes->motion_blur_enabled = p_enable;
 	cam_attributes->motion_blur_intensity = p_intensity;
-	cam_attributes->motion_blur_tile_level = p_tile_level;
-	cam_attributes->motion_blur_quality = p_quality;
 	cam_attributes->motion_blur_custom_curve = p_custom_curve;
 	cam_attributes->motion_blur_clamp_velocities_to_tile = p_clamp_velocities_to_tile;
 }
@@ -73,18 +79,6 @@ float RendererCameraAttributes::camera_attributes_get_motion_blur_intensity(RID 
 	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
 	ERR_FAIL_NULL_V(cam_attributes, 0.0);
 	return cam_attributes->motion_blur_intensity;
-}
-
-RS::MotionBlurTileLevel RendererCameraAttributes::camera_attributes_get_motion_blur_tile_level(RID p_camera_attributes) {
-	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
-	ERR_FAIL_NULL_V(cam_attributes, RenderingServer::MOTION_BLUR_TILE_LEVEL_MEDIUM);
-	return cam_attributes->motion_blur_tile_level;
-}
-
-RS::MotionBlurQuality RendererCameraAttributes::camera_attributes_get_motion_blur_quality(RID p_camera_attributes) {
-	CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
-	ERR_FAIL_NULL_V(cam_attributes, RenderingServer::MOTION_BLUR_QUALITY_MEDIUM);
-	return cam_attributes->motion_blur_quality;
 }
 
 bool RendererCameraAttributes::camera_attributes_get_motion_blur_clamp_velocities_to_tile(RID p_camera_attributes) {

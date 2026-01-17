@@ -239,21 +239,21 @@ void RendererRD::MotionBlur::recreate_pipelines() {
 
 void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, bool transparent_bg, CopyEffects *p_copy_effects) {
 	int new_tile_size;
-	switch (RSG::camera_attributes->camera_attributes_get_motion_blur_tile_level(p_camera_attributes)) {
-		case RS::MOTION_BLUR_TILE_LEVEL_SMALL:
+	switch (RSG::camera_attributes->camera_attributes_get_motion_blur_tile_size()) {
+		case RS::MOTION_BLUR_TILE_SIZE_SMALL:
 			new_tile_size = 20;
 			break;
-		case RS::MOTION_BLUR_TILE_LEVEL_MEDIUM:
+		case RS::MOTION_BLUR_TILE_SIZE_MEDIUM:
 			new_tile_size = 40;
 			break;
-		case RS::MOTION_BLUR_TILE_LEVEL_LARGE:
+		case RS::MOTION_BLUR_TILE_SIZE_LARGE:
 			new_tile_size = 60;
 			break;
-		case RS::MOTION_BLUR_TILE_LEVEL_EXTRA_LARGE:
+		case RS::MOTION_BLUR_TILE_SIZE_EXTRA_LARGE:
 			new_tile_size = 80;
 			break;
 		default:
-			WARN_PRINT_ONCE("Unknown motion blur tile level.");
+			WARN_PRINT_ONCE("Unknown motion blur tile size.");
 			new_tile_size = 40;
 			break;
 	}
@@ -287,7 +287,7 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 		// Framerate independent
 		intensity *= p_scene_data->time_step / (1.f / 30);
 		int sample_count;
-		switch (RSG::camera_attributes->camera_attributes_get_motion_blur_quality(p_camera_attributes)) {
+		switch (RSG::camera_attributes->camera_attributes_get_motion_blur_quality()) {
 			case RenderingServer::MOTION_BLUR_QUALITY_LOW:
 				sample_count = 4;
 				break;

@@ -50,8 +50,6 @@ private:
 		uint64_t auto_exposure_version = 0;
 
 		bool motion_blur_enabled = false;
-		RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;
-		RS::MotionBlurTileLevel motion_blur_tile_level = RS::MOTION_BLUR_TILE_LEVEL_MEDIUM;
 		float motion_blur_intensity = 1.0;
 		bool motion_blur_clamp_velocities_to_tile = false;
 		RID motion_blur_custom_curve = RID();
@@ -65,6 +63,8 @@ private:
 		float dof_blur_amount = 0.1;
 	};
 
+	RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;
+	RS::MotionBlurTileSize motion_blur_tile_size = RS::MOTION_BLUR_TILE_SIZE_MEDIUM;
 	RS::DOFBlurQuality dof_blur_quality = RS::DOF_BLUR_QUALITY_MEDIUM;
 	RS::DOFBokehShape dof_blur_bokeh_shape = RS::DOF_BOKEH_HEXAGON;
 	bool dof_blur_use_jitter = false;
@@ -85,10 +85,11 @@ public:
 	void camera_attributes_initialize(RID p_rid);
 	void camera_attributes_free(RID p_rid);
 
-	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, RS::MotionBlurTileLevel p_tile_level, RS::MotionBlurQuality p_quality, bool p_clamp_velocities_to_tile, RID p_custom_curve);
+	void camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality p_quality);
+	void camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize p_tile_size);
+
+	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, RID p_custom_curve);
 	float camera_attributes_get_motion_blur_intensity(RID p_camera_attributes);
-	RS::MotionBlurTileLevel camera_attributes_get_motion_blur_tile_level(RID p_camera_attributes);
-	RS::MotionBlurQuality camera_attributes_get_motion_blur_quality(RID p_camera_attributes);
 	bool camera_attributes_get_motion_blur_clamp_velocities_to_tile(RID p_camera_attributes);
 	RID camera_attributes_get_motion_blur_custom_curve(RID p_camera_attributes);
 
@@ -130,6 +131,14 @@ public:
 		CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
 
 		return cam_attributes && cam_attributes->use_auto_exposure;
+	}
+
+	_FORCE_INLINE_ RS::MotionBlurQuality camera_attributes_get_motion_blur_quality() {
+		return motion_blur_quality;
+	}
+
+	_FORCE_INLINE_ RS::MotionBlurTileSize camera_attributes_get_motion_blur_tile_size() {
+		return motion_blur_tile_size;
 	}
 
 	_FORCE_INLINE_ RS::DOFBlurQuality camera_attributes_get_dof_blur_quality() {

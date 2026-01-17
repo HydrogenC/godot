@@ -1404,17 +1404,17 @@ public:
 		MOTION_BLUR_QUALITY_HIGH,
 	};
 
-	enum MotionBlurTileLevel {
-		MOTION_BLUR_TILE_LEVEL_SMALL,
-		MOTION_BLUR_TILE_LEVEL_MEDIUM,
-		MOTION_BLUR_TILE_LEVEL_LARGE,
-		MOTION_BLUR_TILE_LEVEL_EXTRA_LARGE,
+	enum MotionBlurTileSize {
+		MOTION_BLUR_TILE_SIZE_SMALL,
+		MOTION_BLUR_TILE_SIZE_MEDIUM,
+		MOTION_BLUR_TILE_SIZE_LARGE,
+		MOTION_BLUR_TILE_SIZE_EXTRA_LARGE,
 	};
 
-	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, MotionBlurTileLevel p_tile_level, MotionBlurQuality p_quality, bool p_clamp_velocities_to_tile, RID p_custom_curve) = 0;
+	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, RID p_custom_curve) = 0;
 
-	virtual void camera_attributes_set_motion_blur_quality(MotionBlurQuality p_quality);
-	virtual void camera_attributes_set_motion_blur_tile_level(MotionBlurTileLevel p_tile_level);
+	virtual void camera_attributes_set_motion_blur_quality(MotionBlurQuality p_quality) = 0;
+	virtual void camera_attributes_set_motion_blur_tile_size(MotionBlurTileSize p_tile_size) = 0;
 
 	enum DOFBlurQuality {
 		DOF_BLUR_QUALITY_VERY_LOW,
@@ -2023,7 +2023,7 @@ VARIANT_ENUM_CAST(RenderingServer::EnvironmentSDFGIFramesToUpdateLight);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentSDFGIYScale);
 VARIANT_ENUM_CAST(RenderingServer::SubSurfaceScatteringQuality);
 VARIANT_ENUM_CAST(RenderingServer::MotionBlurQuality);
-VARIANT_ENUM_CAST(RenderingServer::MotionBlurTileLevel);
+VARIANT_ENUM_CAST(RenderingServer::MotionBlurTileSize);
 VARIANT_ENUM_CAST(RenderingServer::DOFBlurQuality);
 VARIANT_ENUM_CAST(RenderingServer::DOFBokehShape);
 VARIANT_ENUM_CAST(RenderingServer::ShadowQuality);
