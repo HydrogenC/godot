@@ -1411,7 +1411,7 @@ public:
 		MOTION_BLUR_TILE_SIZE_EXTRA_LARGE,
 	};
 
-	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, RID p_custom_curve) = 0;
+	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, float p_object_velocity_multiplier, float p_movement_velocity_multiplier, float p_rotation_velocity_multiplier, float p_velocity_lower_threshold, float p_velocity_upper_threshold, RID p_custom_curve) = 0;
 
 	virtual void camera_attributes_set_motion_blur_quality(MotionBlurQuality p_quality) = 0;
 	virtual void camera_attributes_set_motion_blur_tile_size(MotionBlurTileSize p_tile_size) = 0;
