@@ -302,9 +302,10 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 		}
 		bool clamp_velocities_to_tile = RSG::camera_attributes->camera_attributes_get_motion_blur_clamp_velocities_to_tile(p_camera_attributes);
 
-		// Hardcode these values since they are very internal and seldom requires change
+		// TODO: add these multipliers to settings
 		motion_blur.preprocess_push_constant.movement_velocity_multiplier = 1.0f;
-		motion_blur.preprocess_push_constant.rotation_velocity_multiplier = 1.0f;
+		// Disable camera rotational blur under editor mode
+		motion_blur.preprocess_push_constant.rotation_velocity_multiplier = Engine::get_singleton()->is_editor_hint() ? 0.0f : 1.0f;
 		motion_blur.preprocess_push_constant.object_velocity_multiplier = 1.0f;
 		motion_blur.preprocess_push_constant.rotation_velocity_lower_threshold = 0.0f;
 		motion_blur.preprocess_push_constant.rotation_velocity_upper_threshold = 0.0f;
