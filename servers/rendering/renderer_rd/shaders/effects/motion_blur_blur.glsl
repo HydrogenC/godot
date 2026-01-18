@@ -22,6 +22,7 @@
 // File changes (yyyy-mm-dd)
 // 2025-01-11: sphynx: first commit
 // 2026-01-16: HydrogenC: make tile size specification constant and simplify push constant
+// 2026-01-18: AR-DEV-1: add missing t in overlapn
 ///////////////////////////////////////////////////////////////////////////////////
 // Original file link: https://github.com/sphynx-owner/godot-motion-blur-addon-simplified/blob/master/addons/sphynx_motion_blur_toolkit/guertin/shader_stages/shader_files/guertin_sphynx_blur.glsl
 
@@ -118,7 +119,7 @@ vec4 sample_y_velocity(vec2 x, float t, vec2 vn, vec2 wn, float z, ivec2 render_
 
 	float zyn = vyzwn.w;
 
-	float overlapn = 1 - soft_compare(zyn - vyzwn.z, z, -10);
+	float overlapn = 1 - soft_compare(zyn - vyzwn.z * t, z, -10);
 
 	vec2 wyn = safenorm(vyn);
 
