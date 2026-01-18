@@ -284,8 +284,6 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 
 	{
 		float intensity = RSG::camera_attributes->camera_attributes_get_motion_blur_intensity(p_camera_attributes);
-		// Framerate independent
-		intensity *= p_scene_data->time_step / (1.f / 30);
 		int sample_count;
 		switch (RSG::camera_attributes->camera_attributes_get_motion_blur_quality()) {
 			case RenderingServer::MOTION_BLUR_QUALITY_LOW:
