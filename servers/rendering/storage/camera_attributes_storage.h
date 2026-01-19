@@ -68,6 +68,7 @@ private:
 		float dof_blur_amount = 0.1;
 	};
 
+	bool editor_motion_blur_enabled = true;
 	RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;
 	RS::MotionBlurTileSize motion_blur_tile_size = RS::MOTION_BLUR_TILE_SIZE_MEDIUM;
 	RS::DOFBlurQuality dof_blur_quality = RS::DOF_BLUR_QUALITY_MEDIUM;
@@ -90,6 +91,8 @@ public:
 	void camera_attributes_initialize(RID p_rid);
 	void camera_attributes_free(RID p_rid);
 
+	void camera_attributes_set_editor_motion_blur_enabled(bool p_enabled);
+	bool camera_attributes_is_editor_motion_blur_enabled() const;
 	void camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality p_quality);
 	void camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize p_tile_size);
 

@@ -3216,6 +3216,7 @@ void RenderingServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_dof_blur_quality", "quality", "use_jitter"), &RenderingServer::camera_attributes_set_dof_blur_quality);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_dof_blur_bokeh_shape", "shape"), &RenderingServer::camera_attributes_set_dof_blur_bokeh_shape);
+	ClassDB::bind_method(D_METHOD("camera_attributes_set_editor_motion_blur_enabled", "enabled"), &RenderingServer::camera_attributes_set_editor_motion_blur_enabled);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_quality", "quality"), &RenderingServer::camera_attributes_set_motion_blur_quality);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_tile_size", "tile_size"), &RenderingServer::camera_attributes_set_motion_blur_tile_size);
 

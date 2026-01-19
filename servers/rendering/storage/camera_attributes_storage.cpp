@@ -53,6 +53,17 @@ void RendererCameraAttributes::camera_attributes_free(RID p_rid) {
 	camera_attributes_owner.free(p_rid);
 }
 
+void RendererCameraAttributes::camera_attributes_set_editor_motion_blur_enabled(bool p_enabled) {
+	if (editor_motion_blur_enabled == p_enabled) {
+		return;
+	}
+	editor_motion_blur_enabled = p_enabled;
+}
+
+bool RendererCameraAttributes::camera_attributes_is_editor_motion_blur_enabled() const {
+	return editor_motion_blur_enabled;
+}
+
 void RendererCameraAttributes::camera_attributes_set_motion_blur_quality(RenderingServer::MotionBlurQuality p_quality) {
 	motion_blur_quality = p_quality;
 }

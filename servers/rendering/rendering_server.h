@@ -1413,6 +1413,8 @@ public:
 
 	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, float p_object_velocity_multiplier, float p_movement_velocity_multiplier, float p_rotation_velocity_multiplier, float p_velocity_lower_threshold, float p_velocity_upper_threshold, RID p_custom_curve) = 0;
 
+	virtual void camera_attributes_set_editor_motion_blur_enabled(bool p_enabled);
+	virtual bool camera_attributes_is_editor_motion_blur_enabled() const;
 	virtual void camera_attributes_set_motion_blur_quality(MotionBlurQuality p_quality) = 0;
 	virtual void camera_attributes_set_motion_blur_tile_size(MotionBlurTileSize p_tile_size) = 0;
 
@@ -1952,6 +1954,7 @@ private:
 	TypedArray<Dictionary> _canvas_item_get_instance_shader_parameter_list(RID p_item) const;
 	TypedArray<Image> _bake_render_uv2(RID p_base, const TypedArray<RID> &p_material_overrides, const Size2i &p_image_size);
 	void _particles_set_trail_bind_poses(RID p_particles, const TypedArray<Transform3D> &p_bind_poses);
+	bool editor_motion_blur_enabled = true;
 #ifdef TOOLS_ENABLED
 	SurfaceUpgradeCallback surface_upgrade_callback = nullptr;
 	bool warn_on_surface_upgrade = true;

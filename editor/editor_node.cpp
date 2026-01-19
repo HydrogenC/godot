@@ -468,6 +468,8 @@ void EditorNode::_update_from_settings() {
 		scene_root->propagate_notification(Control::NOTIFICATION_LAYOUT_DIRECTION_CHANGED);
 	}
 
+	bool editor_mb_enabled = bool(GLOBAL_GET("rendering/camera/motion_blur/editor_motion_blur_enabled"));
+	RS::get_singleton()->camera_attributes_set_editor_motion_blur_enabled(editor_mb_enabled);
 	RS::MotionBlurQuality motion_blur_quality = RS::MotionBlurQuality(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_quality")));
 	RS::get_singleton()->camera_attributes_set_motion_blur_quality(motion_blur_quality);
 	RS::MotionBlurTileSize motion_blur_tile_size = RS::MotionBlurTileSize(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_tile_size")));
