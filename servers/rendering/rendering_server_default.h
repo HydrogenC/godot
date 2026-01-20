@@ -873,6 +873,7 @@ public:
 
 	FUNC1(camera_attributes_set_motion_blur_quality, MotionBlurQuality)
 	FUNC1(camera_attributes_set_motion_blur_tile_size, MotionBlurTileSize)
+	FUNC1(camera_attributes_set_editor_motion_blur_enabled, bool)
 
 	FUNC10(camera_attributes_set_motion_blur, RID, bool, float, bool, float, float, float, float, float, RID)
 

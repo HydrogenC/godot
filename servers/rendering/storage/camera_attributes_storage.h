@@ -92,7 +92,6 @@ public:
 	void camera_attributes_free(RID p_rid);
 
 	void camera_attributes_set_editor_motion_blur_enabled(bool p_enabled);
-	bool camera_attributes_is_editor_motion_blur_enabled() const;
 	void camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality p_quality);
 	void camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize p_tile_size);
 
@@ -152,6 +151,10 @@ public:
 
 	_FORCE_INLINE_ RS::MotionBlurTileSize camera_attributes_get_motion_blur_tile_size() {
 		return motion_blur_tile_size;
+	}
+
+	_FORCE_INLINE_ bool camera_attributes_is_editor_motion_blur_enabled() {
+		return editor_motion_blur_enabled;
 	}
 
 	_FORCE_INLINE_ RS::DOFBlurQuality camera_attributes_get_dof_blur_quality() {

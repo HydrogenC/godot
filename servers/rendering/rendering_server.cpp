@@ -3764,6 +3764,7 @@ void RenderingServer::init() {
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_tile_size", PROPERTY_HINT_ENUM, "Small,Medium,Large,Extra Large"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_quality", PROPERTY_HINT_ENUM, "Low (Fast),Medium (Average),High (Slow)"), 1);
+	GLOBAL_DEF("rendering/camera/motion_blur/editor_motion_blur_enabled", true);
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/depth_of_field/depth_of_field_bokeh_shape", PROPERTY_HINT_ENUM, "Box (Fast),Hexagon (Average),Circle (Slowest)"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/depth_of_field/depth_of_field_bokeh_quality", PROPERTY_HINT_ENUM, "Very Low (Fastest),Low (Fast),Medium (Average),High (Slow)"), 1);
