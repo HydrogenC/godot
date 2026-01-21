@@ -243,35 +243,19 @@ void main() {
 
 		// A point in time along the blur interval, used to scale velocity vectors to sample for color.
 		float t = mix(-0.5, 0, ti);
-
 		float neg_t = -t;
-
-#ifdef USE_CUSTOM_CURVE
-		float custom_curve_sample = textureLod(custom_curve, vec2(ti, 0.5), 0.0).x;
-#else
-		float custom_curve_sample = 1;
-#endif
-
-		float current_total_weight = custom_curve_sample;
+		float current_total_weight = 1;
 
 		float x_weight;
-
 		vec4 x_sample = sample_x_velocity(x, t, vx, zx, vxzw.z, render_size, x_weight);
-
 		float neg_x_weight;
-
 		vec4 neg_x_sample = sample_x_velocity(x, neg_t, vx, zx, vxzw.z, render_size, neg_x_weight);
 
 		float y_weight;
-
 		vec4 y_sample = sample_y_velocity(x, t, vn, wn, zx, render_size, y_weight);
-
 		float neg_y_weight;
-
 		vec4 neg_y_sample = sample_y_velocity(x, -t, vn, wn, zx, render_size, neg_y_weight);
-
 		blend_blur(base_color, x_sample, x_weight, neg_x_sample, neg_x_weight, y_sample, y_weight, current_total_weight, sum, color_weight, alpha_weight);
-
 		blend_blur(base_color, neg_x_sample, neg_x_weight, x_sample, x_weight, neg_y_sample, neg_y_weight, current_total_weight, sum, color_weight, alpha_weight);
 	}
 
