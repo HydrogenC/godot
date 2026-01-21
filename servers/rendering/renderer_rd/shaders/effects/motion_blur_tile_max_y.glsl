@@ -36,8 +36,6 @@
 layout(set = 0, binding = 0) uniform sampler2D tile_max_x;
 layout(rgba16f, set = 0, binding = 1) uniform writeonly image2D tile_max;
 
-layout(constant_id = 0) const int tile_size = 40;
-
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 void main() {
@@ -45,9 +43,7 @@ void main() {
 	ivec2 output_size = imageSize(tile_max);
 	ivec2 uvi = ivec2(gl_GlobalInvocationID.xy);
 
-	// HydrogenC: copy it out in advance to avoid creating OpSpecConstantComposite, which is unsupported
-	int tile_size_ = tile_size;
-	ivec2 global_uvi = uvi * ivec2(1, tile_size_);
+	ivec2 global_uvi = uvi * ivec2(1, TILE_SIZE);
 	if ((uvi.x >= output_size.x) || (uvi.y >= output_size.y) || (global_uvi.x >= render_size.x) || (global_uvi.y >= render_size.y)) {
 		return;
 	}
@@ -58,7 +54,7 @@ void main() {
 
 	float max_velocity_length = -1;
 
-	for (int i = 0; i < tile_size; i++) {
+	for (int i = 0; i < TILE_SIZE; i++) {
 		vec2 current_uv = uvn + vec2(0, float(i) / render_size.y);
 		vec2 velocity_sample = textureLod(tile_max_x, current_uv, 0.0).xy;
 		float current_velocity_length = dot(velocity_sample, velocity_sample);

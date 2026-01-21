@@ -1769,7 +1769,7 @@ void RendererSceneRenderRD::init() {
 
 	bokeh_dof = memnew(RendererRD::BokehDOF(!can_use_storage));
 	// It's OK to hardcode the tile size
-	motion_blur = memnew(RendererRD::MotionBlur(40));
+	motion_blur = memnew(RendererRD::MotionBlur(RSG::camera_attributes->camera_attributes_get_motion_blur_tile_size()));
 	copy_effects = memnew(RendererRD::CopyEffects(raster_effects));
 	debug_effects = memnew(RendererRD::DebugEffects);
 	luminance = memnew(RendererRD::Luminance(!can_use_storage));
