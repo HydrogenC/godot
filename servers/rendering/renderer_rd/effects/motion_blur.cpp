@@ -278,6 +278,12 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 		p_render_buffers->create_texture(RB_SCOPE_MOTION_BLUR, RB_TEX_BLUR_OUTPUT, RD::DATA_FORMAT_R16G16B16A16_SFLOAT, usage_bits, RD::TEXTURE_SAMPLES_1, base_size);
 	}
 
+	// The velocity buffer is not clean during the first few frames,
+	// to avoid flickering we skip motion blur during that time.
+	if (!Engine::get_singleton()->is_editor_hint() && Engine::get_singleton()->get_frames_drawn() < 3) {
+		return;
+	}
+
 	MotionBlurBuffers buffers;
 	buffers.base_size = base_size;
 	buffers.tiled_size = tiled_size;
