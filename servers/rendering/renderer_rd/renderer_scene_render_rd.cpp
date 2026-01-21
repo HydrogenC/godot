@@ -550,7 +550,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 	bool using_motion_blur = RSG::camera_attributes->camera_attributes_uses_motion_blur(p_render_data->camera_attributes);
 
 	if (using_motion_blur && !can_use_storage) {
-		WARN_PRINT_ONCE("Motion blur requires storage support in shader. Disabling motion blur in transparent viewport.");
+		WARN_PRINT_ONCE("Motion blur requires storage support in shader. Disabling motion blur.");
 		using_motion_blur = false;
 	}
 
