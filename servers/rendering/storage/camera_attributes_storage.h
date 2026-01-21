@@ -51,13 +51,12 @@ private:
 
 		bool motion_blur_enabled = false;
 		float motion_blur_intensity = 1.0;
-		bool motion_blur_clamp_velocities_to_tile = false;
+		bool motion_blur_clamp_velocities_to_tile = true;
 		float motion_blur_object_velocity_multiplier = 1.0;
 		float motion_blur_movement_velocity_multiplier = 1.0;
 		float motion_blur_rotation_velocity_multiplier = 1.0;
 		float motion_blur_velocity_lower_threshold = 0.0;
 		float motion_blur_velocity_upper_threshold = 0.0;
-		RID motion_blur_custom_curve = RID();
 
 		bool dof_blur_far_enabled = false;
 		float dof_blur_far_distance = 10;
@@ -68,7 +67,7 @@ private:
 		float dof_blur_amount = 0.1;
 	};
 
-	bool editor_motion_blur_enabled = true;
+	bool motion_blur_show_in_editor = true;
 	RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;
 	RS::MotionBlurTileSize motion_blur_tile_size = RS::MOTION_BLUR_TILE_SIZE_MEDIUM;
 	RS::DOFBlurQuality dof_blur_quality = RS::DOF_BLUR_QUALITY_MEDIUM;
@@ -94,8 +93,9 @@ public:
 	void camera_attributes_set_editor_motion_blur_enabled(bool p_enabled);
 	void camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality p_quality);
 	void camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize p_tile_size);
+	void camera_attributes_set_motion_blur_show_in_editor(bool p_enabled);
 
-	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, float p_object_velocity_multiplier, float p_movement_velocity_multiplier, float p_rotation_velocity_multiplier, float p_velocity_lower_threshold, float p_velocity_upper_threshold, RID p_custom_curve);
+	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, float p_object_velocity_multiplier, float p_movement_velocity_multiplier, float p_rotation_velocity_multiplier, float p_velocity_lower_threshold, float p_velocity_upper_threshold);
 	float camera_attributes_get_motion_blur_intensity(RID p_camera_attributes);
 	bool camera_attributes_get_motion_blur_clamp_velocities_to_tile(RID p_camera_attributes);
 	float camera_attributes_get_motion_blur_object_velocity_multiplier(RID p_camera_attributes);
@@ -103,7 +103,6 @@ public:
 	float camera_attributes_get_motion_blur_rotation_velocity_multiplier(RID p_camera_attributes);
 	float camera_attributes_get_motion_blur_velocity_lower_threshold(RID p_camera_attributes);
 	float camera_attributes_get_motion_blur_velocity_upper_threshold(RID p_camera_attributes);
-	RID camera_attributes_get_motion_blur_custom_curve(RID p_camera_attributes);
 
 	_FORCE_INLINE_ bool camera_attributes_uses_motion_blur(RID p_camera_attributes) {
 		CameraAttributes *cam_attributes = camera_attributes_owner.get_or_null(p_camera_attributes);
@@ -153,8 +152,8 @@ public:
 		return motion_blur_tile_size;
 	}
 
-	_FORCE_INLINE_ bool camera_attributes_is_editor_motion_blur_enabled() {
-		return editor_motion_blur_enabled;
+	_FORCE_INLINE_ bool camera_attributes_get_motion_blur_show_in_editor() {
+		return motion_blur_show_in_editor;
 	}
 
 	_FORCE_INLINE_ RS::DOFBlurQuality camera_attributes_get_dof_blur_quality() {

@@ -554,7 +554,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 		using_motion_blur = false;
 	}
 
-	if (using_motion_blur && !RSG::camera_attributes->camera_attributes_is_editor_motion_blur_enabled() && Engine::get_singleton()->is_editor_hint()) {
+	if (using_motion_blur && !RSG::camera_attributes->camera_attributes_get_motion_blur_show_in_editor() && Engine::get_singleton()->is_editor_hint()) {
 		using_motion_blur = false;
 	}
 
@@ -1717,7 +1717,7 @@ void RendererSceneRenderRD::init() {
 		RendererRD::Fog::get_singleton()->init_fog_shader(RendererRD::LightStorage::get_singleton()->get_max_directional_lights(), get_roughness_layers(), is_using_radiance_octmap_array());
 	}
 
-	RSG::camera_attributes->camera_attributes_set_editor_motion_blur_enabled(bool(GLOBAL_GET("rendering/camera/motion_blur/editor_motion_blur_enabled")));
+	RSG::camera_attributes->camera_attributes_set_editor_motion_blur_enabled(bool(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_show_in_editor")));
 	RSG::camera_attributes->camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_quality"))));
 	RSG::camera_attributes->camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_tile_size"))));
 

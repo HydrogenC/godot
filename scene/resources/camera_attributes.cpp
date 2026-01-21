@@ -231,48 +231,6 @@ float CameraAttributesPractical::get_motion_blur_velocity_upper_threshold() cons
 	return motion_blur_velocity_upper_threshold;
 }
 
-void CameraAttributesPractical::set_motion_blur_custom_curve(const Ref<Curve> &p_curve) {
-	if (p_curve == motion_blur_custom_curve) {
-		return;
-	}
-
-	RenderingDevice *rd = RS::get_singleton()->get_rendering_device();
-	if (motion_blur_custom_curve_rid.is_valid()) {
-		rd->free_rid(motion_blur_custom_curve_rid);
-	}
-
-	motion_blur_custom_curve = p_curve;
-
-	if (motion_blur_custom_curve.is_valid()) {
-		CurveTexture curve_texture = CurveTexture();
-		curve_texture.set_curve(motion_blur_custom_curve);
-
-		Ref<Image> curve_image = RS::get_singleton()->texture_2d_get(curve_texture.get_rid());
-		curve_image->clear_mipmaps();
-		curve_image->decompress();
-		curve_image->convert(Image::FORMAT_RGBAF);
-
-		RD::TextureFormat format = {};
-		format.width = curve_image->get_width();
-		format.height = curve_image->get_height();
-		format.depth = 1;
-		format.texture_type = RD::TEXTURE_TYPE_2D;
-		format.format = RD::DATA_FORMAT_R32G32B32A32_SFLOAT;
-		format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
-
-		RD::TextureView paint_texture_view = {};
-		motion_blur_custom_curve_rid = rd->texture_create(format, paint_texture_view, { curve_image->get_data() });
-	} else {
-		motion_blur_custom_curve_rid = RID();
-	}
-
-	_update_motion_blur();
-}
-
-Ref<Curve> CameraAttributesPractical::get_motion_blur_custom_curve() const {
-	return motion_blur_custom_curve;
-}
-
 void CameraAttributesPractical::set_dof_blur_far_enabled(bool p_enabled) {
 	dof_blur_far_enabled = p_enabled;
 	_update_dof_blur();
@@ -348,8 +306,7 @@ void CameraAttributesPractical::_update_motion_blur() {
 			motion_blur_movement_velocity_multiplier,
 			motion_blur_rotation_velocity_multiplier,
 			motion_blur_velocity_lower_threshold,
-			motion_blur_velocity_upper_threshold,
-			motion_blur_custom_curve_rid);
+			motion_blur_velocity_upper_threshold);
 }
 
 void CameraAttributesPractical::_update_dof_blur() {
@@ -432,8 +389,6 @@ void CameraAttributesPractical::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_motion_blur_velocity_lower_threshold"), &CameraAttributesPractical::get_motion_blur_velocity_lower_threshold);
 	ClassDB::bind_method(D_METHOD("set_motion_blur_velocity_upper_threshold", "threshold"), &CameraAttributesPractical::set_motion_blur_velocity_upper_threshold);
 	ClassDB::bind_method(D_METHOD("get_motion_blur_velocity_upper_threshold"), &CameraAttributesPractical::get_motion_blur_velocity_upper_threshold);
-	ClassDB::bind_method(D_METHOD("set_motion_blur_custom_curve", "custom_curve"), &CameraAttributesPractical::set_motion_blur_custom_curve);
-	ClassDB::bind_method(D_METHOD("get_motion_blur_custom_curve"), &CameraAttributesPractical::get_motion_blur_custom_curve);
 
 	// DOF blur
 
@@ -462,12 +417,11 @@ void CameraAttributesPractical::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_enabled"), "set_motion_blur_enabled", "is_motion_blur_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0.0,5.0,0.01,or_greater"), "set_motion_blur_intensity", "get_motion_blur_intensity");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_clamp_velocities_to_tile"), "set_motion_blur_clamp_velocities_to_tile", "is_motion_blur_clamp_velocities_to_tile");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_object_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater"), "set_motion_blur_object_velocity_multiplier", "get_motion_blur_object_velocity_multiplier");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_movement_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater"), "set_motion_blur_movement_velocity_multiplier", "get_motion_blur_movement_velocity_multiplier");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_rotation_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater"), "set_motion_blur_rotation_velocity_multiplier", "get_motion_blur_rotation_velocity_multiplier");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_object_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater"), "set_motion_blur_object_velocity_multiplier", "get_motion_blur_object_velocity_multiplier");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_movement_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater"), "set_motion_blur_movement_velocity_multiplier", "get_motion_blur_movement_velocity_multiplier");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_rotation_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,1.0,0.01,or_greater"), "set_motion_blur_rotation_velocity_multiplier", "get_motion_blur_rotation_velocity_multiplier");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_velocity_lower_threshold", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater"), "set_motion_blur_velocity_lower_threshold", "get_motion_blur_velocity_lower_threshold");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_velocity_upper_threshold", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater"), "set_motion_blur_velocity_upper_threshold", "get_motion_blur_velocity_upper_threshold");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "motion_blur_custom_curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve"), "set_motion_blur_custom_curve", "get_motion_blur_custom_curve");
 
 	ADD_GROUP("DOF Blur", "dof_blur_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dof_blur_far_enabled"), "set_dof_blur_far_enabled", "is_dof_blur_far_enabled");
@@ -493,9 +447,6 @@ CameraAttributesPractical::CameraAttributesPractical() {
 }
 
 CameraAttributesPractical::~CameraAttributesPractical() {
-	if (motion_blur_custom_curve_rid.is_valid()) {
-		RS::get_singleton()->get_rendering_device()->free_rid(motion_blur_custom_curve_rid);
-	}
 }
 
 //////////////////////////////////////////////////////
