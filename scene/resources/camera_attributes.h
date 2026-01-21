@@ -82,14 +82,12 @@ private:
 	// Motion blur
 	bool motion_blur_enabled = false;
 	float motion_blur_intensity = 1.0;
-	bool motion_blur_clamp_velocities_to_tile = false;
+	bool motion_blur_clamp_velocities_to_tile = true;
 	float motion_blur_object_velocity_multiplier = 1.0;
 	float motion_blur_movement_velocity_multiplier = 1.0;
 	float motion_blur_rotation_velocity_multiplier = 1.0;
 	float motion_blur_velocity_lower_threshold = 0.0;
 	float motion_blur_velocity_upper_threshold = 0.0;
-	Ref<Curve> motion_blur_custom_curve = Ref<Curve>();
-	RID motion_blur_custom_curve_rid = RID();
 	void _update_motion_blur();
 
 	// DOF blur
@@ -128,9 +126,6 @@ public:
 	float get_motion_blur_velocity_lower_threshold() const;
 	void set_motion_blur_velocity_upper_threshold(float p_threshold);
 	float get_motion_blur_velocity_upper_threshold() const;
-
-	void set_motion_blur_custom_curve(const Ref<Curve> &p_curve);
-	Ref<Curve> get_motion_blur_custom_curve() const;
 
 	// DOF blur
 	void set_dof_blur_far_enabled(bool p_enabled);

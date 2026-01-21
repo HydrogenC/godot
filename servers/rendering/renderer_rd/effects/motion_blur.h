@@ -59,7 +59,6 @@ private:
 		MOTION_BLUR_TILE_MAX_Y,
 		MOTION_BLUR_NEIGHBOR_MAX,
 		MOTION_BLUR_BLUR,
-		MOTION_BLUR_BLUR_CUSTOM_CURVE,
 		MOTION_BLUR_MAX,
 	};
 
@@ -117,7 +116,6 @@ private:
 		Size2i base_size;
 		Size2i tiled_size;
 
-		RID custom_curve;
 		RID scene_data_uniform;
 
 		// Textures and images

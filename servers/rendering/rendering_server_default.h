@@ -873,9 +873,9 @@ public:
 
 	FUNC1(camera_attributes_set_motion_blur_quality, MotionBlurQuality)
 	FUNC1(camera_attributes_set_motion_blur_tile_size, MotionBlurTileSize)
-	FUNC1(camera_attributes_set_editor_motion_blur_enabled, bool)
+	FUNC1(camera_attributes_set_motion_blur_show_in_editor, bool)
 
-	FUNC10(camera_attributes_set_motion_blur, RID, bool, float, bool, float, float, float, float, float, RID)
+	FUNC9(camera_attributes_set_motion_blur, RID, bool, float, bool, float, float, float, float, float)
 
 	FUNC2(camera_attributes_set_dof_blur_quality, DOFBlurQuality, bool)
 	FUNC1(camera_attributes_set_dof_blur_bokeh_shape, DOFBokehShape)
