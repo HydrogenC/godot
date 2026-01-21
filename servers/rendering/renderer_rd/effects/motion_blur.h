@@ -133,10 +133,9 @@ private:
 
 	int tile_size;
 	void motion_blur_process(const MotionBlurBuffers &p_buffers);
-	void recreate_pipelines();
 
 public:
-	MotionBlur(int p_tile_size);
+	MotionBlur(RS::MotionBlurTileSize p_tile_size_level);
 	~MotionBlur();
 
 	void motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, bool transparent_bg, CopyEffects *p_copy_effects);

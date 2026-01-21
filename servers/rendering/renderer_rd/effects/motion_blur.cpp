@@ -31,10 +31,25 @@
 #include "motion_blur.h"
 #include "servers/rendering/renderer_rd/uniform_set_cache_rd.h"
 
-RendererRD::MotionBlur::MotionBlur(int p_tile_size) {
-	tile_size = p_tile_size;
-
-	Vector<String> motion_blur_modes;
+RendererRD::MotionBlur::MotionBlur(RS::MotionBlurTileSize p_tile_size_level) {
+	switch (p_tile_size_level) {
+		case RS::MOTION_BLUR_TILE_SIZE_SMALL:
+			tile_size = 20;
+			break;
+		case RS::MOTION_BLUR_TILE_SIZE_MEDIUM:
+			tile_size = 40;
+			break;
+		case RS::MOTION_BLUR_TILE_SIZE_LARGE:
+			tile_size = 60;
+			break;
+		case RS::MOTION_BLUR_TILE_SIZE_EXTRA_LARGE:
+			tile_size = 80;
+			break;
+		default:
+			WARN_PRINT_ONCE("Unknown motion blur tile size.");
+			tile_size = 40;
+			break;
+	}
 
 	RD::SamplerState sampler;
 	sampler.mag_filter = RD::SAMPLER_FILTER_NEAREST;
@@ -50,38 +65,35 @@ RendererRD::MotionBlur::MotionBlur(int p_tile_size) {
 	sampler.mip_filter = RD::SAMPLER_FILTER_LINEAR;
 	motion_blur.linear_sampler = RD::get_singleton()->sampler_create(sampler);
 
-	Vector<RD::PipelineSpecializationConstant> specialization_constants;
-
-	RD::PipelineSpecializationConstant tile_size_sc;
-	tile_size_sc.constant_id = 0;
-	tile_size_sc.type = RD::PIPELINE_SPECIALIZATION_CONSTANT_TYPE_INT;
-	tile_size_sc.int_value = tile_size;
-	specialization_constants.push_back(tile_size_sc);
+	// Use macros to define TILE_SIZE to enable loop unrolling.
+	// This improves runtime performance significantly.
+	Vector<String> tile_size_defs;
+	tile_size_defs.push_back(vformat("\n#define TILE_SIZE %d\n", tile_size));
 
 	motion_blur.preprocess_shader.initialize({ "\n" });
 	motion_blur.preprocess_shader_version = motion_blur.preprocess_shader.version_create();
 	motion_blur.pipelines[MOTION_BLUR_PREPROCESS].create_compute_pipeline(motion_blur.preprocess_shader.version_get_shader(motion_blur.preprocess_shader_version, 0));
 
-	motion_blur.tile_max_x_shader.initialize({ "\n" });
+	motion_blur.tile_max_x_shader.initialize(tile_size_defs);
 	motion_blur.tile_max_x_shader_version = motion_blur.tile_max_x_shader.version_create();
-	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_X].create_compute_pipeline(motion_blur.tile_max_x_shader.version_get_shader(motion_blur.tile_max_x_shader_version, 0), specialization_constants);
+	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_X].create_compute_pipeline(motion_blur.tile_max_x_shader.version_get_shader(motion_blur.tile_max_x_shader_version, 0));
 
-	motion_blur.tile_max_y_shader.initialize({ "\n" });
+	motion_blur.tile_max_y_shader.initialize(tile_size_defs);
 	motion_blur.tile_max_y_shader_version = motion_blur.tile_max_y_shader.version_create();
-	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_Y].create_compute_pipeline(motion_blur.tile_max_y_shader.version_get_shader(motion_blur.tile_max_y_shader_version, 0), specialization_constants);
+	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_Y].create_compute_pipeline(motion_blur.tile_max_y_shader.version_get_shader(motion_blur.tile_max_y_shader_version, 0));
 
 	motion_blur.neighbor_max_shader.initialize({ "\n" });
 	motion_blur.neighbor_max_shader_version = motion_blur.neighbor_max_shader.version_create();
 	motion_blur.pipelines[MOTION_BLUR_NEIGHBOR_MAX].create_compute_pipeline(motion_blur.neighbor_max_shader.version_get_shader(motion_blur.neighbor_max_shader_version, 0));
 
 	Vector<String> blur_modes;
-	blur_modes.push_back("\n");
-	blur_modes.push_back("\n#define USE_CUSTOM_CURVE\n");
+	blur_modes.push_back(vformat("\n#define TILE_SIZE %d\n", tile_size));
+	blur_modes.push_back(vformat("\n#define TILE_SIZE %d\n#define USE_CUSTOM_CURVE\n", tile_size));
 
 	motion_blur.blur_shader.initialize(blur_modes);
 	motion_blur.blur_shader_version = motion_blur.blur_shader.version_create();
-	motion_blur.pipelines[MOTION_BLUR_BLUR].create_compute_pipeline(motion_blur.blur_shader.version_get_shader(motion_blur.blur_shader_version, 0), specialization_constants);
-	motion_blur.pipelines[MOTION_BLUR_BLUR_CUSTOM_CURVE].create_compute_pipeline(motion_blur.blur_shader.version_get_shader(motion_blur.blur_shader_version, 1), specialization_constants);
+	motion_blur.pipelines[MOTION_BLUR_BLUR].create_compute_pipeline(motion_blur.blur_shader.version_get_shader(motion_blur.blur_shader_version, 0));
+	motion_blur.pipelines[MOTION_BLUR_BLUR_CUSTOM_CURVE].create_compute_pipeline(motion_blur.blur_shader.version_get_shader(motion_blur.blur_shader_version, 1));
 }
 
 RendererRD::MotionBlur::~MotionBlur() {
@@ -218,52 +230,7 @@ void RendererRD::MotionBlur::motion_blur_process(const MotionBlurBuffers &p_buff
 	RD::get_singleton()->compute_list_end();
 }
 
-void RendererRD::MotionBlur::recreate_pipelines() {
-	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_X].free();
-	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_Y].free();
-	motion_blur.pipelines[MOTION_BLUR_BLUR].free();
-	motion_blur.pipelines[MOTION_BLUR_BLUR_CUSTOM_CURVE].free();
-
-	Vector<RD::PipelineSpecializationConstant> specialization_constants;
-	RD::PipelineSpecializationConstant tile_size_sc;
-	tile_size_sc.constant_id = 0;
-	tile_size_sc.type = RD::PIPELINE_SPECIALIZATION_CONSTANT_TYPE_INT;
-	tile_size_sc.int_value = tile_size;
-	specialization_constants.push_back(tile_size_sc);
-
-	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_X].create_compute_pipeline(motion_blur.tile_max_x_shader.version_get_shader(motion_blur.tile_max_x_shader_version, 0), specialization_constants);
-	motion_blur.pipelines[MOTION_BLUR_TILE_MAX_Y].create_compute_pipeline(motion_blur.tile_max_y_shader.version_get_shader(motion_blur.tile_max_y_shader_version, 0), specialization_constants);
-	motion_blur.pipelines[MOTION_BLUR_BLUR].create_compute_pipeline(motion_blur.blur_shader.version_get_shader(motion_blur.blur_shader_version, 0), specialization_constants);
-	motion_blur.pipelines[MOTION_BLUR_BLUR_CUSTOM_CURVE].create_compute_pipeline(motion_blur.blur_shader.version_get_shader(motion_blur.blur_shader_version, 1), specialization_constants);
-}
-
 void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_camera_attributes, RenderSceneDataRD *p_scene_data, bool transparent_bg, CopyEffects *p_copy_effects) {
-	int new_tile_size;
-	switch (RSG::camera_attributes->camera_attributes_get_motion_blur_tile_size()) {
-		case RS::MOTION_BLUR_TILE_SIZE_SMALL:
-			new_tile_size = 20;
-			break;
-		case RS::MOTION_BLUR_TILE_SIZE_MEDIUM:
-			new_tile_size = 40;
-			break;
-		case RS::MOTION_BLUR_TILE_SIZE_LARGE:
-			new_tile_size = 60;
-			break;
-		case RS::MOTION_BLUR_TILE_SIZE_EXTRA_LARGE:
-			new_tile_size = 80;
-			break;
-		default:
-			WARN_PRINT_ONCE("Unknown motion blur tile size.");
-			new_tile_size = 40;
-			break;
-	}
-
-	if (tile_size != new_tile_size) {
-		tile_size = new_tile_size;
-		p_render_buffers->clear_context(RB_SCOPE_MOTION_BLUR);
-		recreate_pipelines();
-	}
-
 	Size2i base_size = p_render_buffers->get_internal_size();
 	Size2i tiled_size = Size2i(Math::division_round_up(base_size.width, tile_size), Math::division_round_up(base_size.height, tile_size));
 	uint32_t view_count = p_render_buffers->get_view_count();
