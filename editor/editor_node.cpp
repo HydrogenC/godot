@@ -468,6 +468,9 @@ void EditorNode::_update_from_settings() {
 		scene_root->propagate_notification(Control::NOTIFICATION_LAYOUT_DIRECTION_CHANGED);
 	}
 
+	RS::MotionBlurFramerateMode motion_blur_framerate_mode = RS::MotionBlurFramerateMode(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_framerate_mode")));
+	int motion_blur_reference_framerate = GLOBAL_GET("rendering/camera/motion_blur/motion_blur_reference_framerate");
+	RS::get_singleton()->camera_attributes_set_motion_blur_framerate_mode(motion_blur_framerate_mode, motion_blur_reference_framerate);
 	bool editor_mb_enabled = bool(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_show_in_editor"));
 	RS::get_singleton()->camera_attributes_set_motion_blur_show_in_editor(editor_mb_enabled);
 	RS::MotionBlurQuality motion_blur_quality = RS::MotionBlurQuality(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_quality")));

@@ -3216,6 +3216,8 @@ void RenderingServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_dof_blur_quality", "quality", "use_jitter"), &RenderingServer::camera_attributes_set_dof_blur_quality);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_dof_blur_bokeh_shape", "shape"), &RenderingServer::camera_attributes_set_dof_blur_bokeh_shape);
+
+	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_framerate_mode", "mode", "reference_framerate"), &RenderingServer::camera_attributes_set_motion_blur_framerate_mode);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_show_in_editor", "enabled"), &RenderingServer::camera_attributes_set_motion_blur_show_in_editor);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_quality", "quality"), &RenderingServer::camera_attributes_set_motion_blur_quality);
 	ClassDB::bind_method(D_METHOD("camera_attributes_set_motion_blur_tile_size", "tile_size"), &RenderingServer::camera_attributes_set_motion_blur_tile_size);
@@ -3762,9 +3764,11 @@ void RenderingServer::init() {
 	GLOBAL_DEF_RST("rendering/textures/default_filters/use_nearest_mipmap_filter", false);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/textures/default_filters/anisotropic_filtering_level", PROPERTY_HINT_ENUM, String::utf8("Disabled (Fastest),2× (Faster),4× (Fast),8× (Average),16× (Slow)")), 2);
 
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_framerate_mode", PROPERTY_HINT_ENUM, "Native,Min,Fixed Intensity"), 0);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_reference_framerate", PROPERTY_HINT_RANGE, "1,120,1,or_greater"), 30);
+	GLOBAL_DEF("rendering/camera/motion_blur/motion_blur_show_in_editor", true);
 	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_tile_size", PROPERTY_HINT_ENUM, "Small,Medium,Large,Extra Large"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_quality", PROPERTY_HINT_ENUM, "Low (Fast),Medium (Average),High (Slow)"), 1);
-	GLOBAL_DEF("rendering/camera/motion_blur/motion_blur_show_in_editor", true);
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/depth_of_field/depth_of_field_bokeh_shape", PROPERTY_HINT_ENUM, "Box (Fast),Hexagon (Average),Circle (Slowest)"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/depth_of_field/depth_of_field_bokeh_quality", PROPERTY_HINT_ENUM, "Very Low (Fastest),Low (Fast),Medium (Average),High (Slow)"), 1);

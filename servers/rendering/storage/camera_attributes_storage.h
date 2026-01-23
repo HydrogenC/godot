@@ -67,9 +67,12 @@ private:
 		float dof_blur_amount = 0.1;
 	};
 
+	RS::MotionBlurFramerateMode motion_blur_framerate_mode = RS::MOTION_BLUR_FRAMERATE_MODE_FIXED;
+	int motion_blur_reference_framerate = 30;
 	bool motion_blur_show_in_editor = true;
 	RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;
 	RS::MotionBlurTileSize motion_blur_tile_size = RS::MOTION_BLUR_TILE_SIZE_MEDIUM;
+
 	RS::DOFBlurQuality dof_blur_quality = RS::DOF_BLUR_QUALITY_MEDIUM;
 	RS::DOFBokehShape dof_blur_bokeh_shape = RS::DOF_BOKEH_HEXAGON;
 	bool dof_blur_use_jitter = false;
@@ -90,10 +93,10 @@ public:
 	void camera_attributes_initialize(RID p_rid);
 	void camera_attributes_free(RID p_rid);
 
-	void camera_attributes_set_editor_motion_blur_enabled(bool p_enabled);
+	void camera_attributes_set_motion_blur_framerate_mode(RS::MotionBlurFramerateMode p_mode, int p_reference_framerate);
+	void camera_attributes_set_motion_blur_show_in_editor(bool p_enabled);
 	void camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality p_quality);
 	void camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize p_tile_size);
-	void camera_attributes_set_motion_blur_show_in_editor(bool p_enabled);
 
 	void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, float p_object_velocity_multiplier, float p_movement_velocity_multiplier, float p_rotation_velocity_multiplier, float p_velocity_lower_threshold, float p_velocity_upper_threshold);
 	float camera_attributes_get_motion_blur_intensity(RID p_camera_attributes);
@@ -144,16 +147,24 @@ public:
 		return cam_attributes && cam_attributes->use_auto_exposure;
 	}
 
+	_FORCE_INLINE_ RS::MotionBlurFramerateMode camera_attributes_get_motion_blur_framerate_mode() {
+		return motion_blur_framerate_mode;
+	}
+
+	_FORCE_INLINE_ int camera_attributes_get_motion_blur_reference_framerate() {
+		return motion_blur_reference_framerate;
+	}
+
+	_FORCE_INLINE_ bool camera_attributes_get_motion_blur_show_in_editor() {
+		return motion_blur_show_in_editor;
+	}
+
 	_FORCE_INLINE_ RS::MotionBlurQuality camera_attributes_get_motion_blur_quality() {
 		return motion_blur_quality;
 	}
 
 	_FORCE_INLINE_ RS::MotionBlurTileSize camera_attributes_get_motion_blur_tile_size() {
 		return motion_blur_tile_size;
-	}
-
-	_FORCE_INLINE_ bool camera_attributes_get_motion_blur_show_in_editor() {
-		return motion_blur_show_in_editor;
 	}
 
 	_FORCE_INLINE_ RS::DOFBlurQuality camera_attributes_get_dof_blur_quality() {

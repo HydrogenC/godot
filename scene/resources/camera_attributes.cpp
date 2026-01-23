@@ -415,13 +415,13 @@ void CameraAttributesPractical::_bind_methods() {
 
 	ADD_GROUP("Motion Blur", "motion_blur_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_enabled", PROPERTY_HINT_GROUP_ENABLE), "set_motion_blur_enabled", "is_motion_blur_enabled");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0.0,5.0,0.01"), "set_motion_blur_intensity", "get_motion_blur_intensity");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_intensity", PROPERTY_HINT_RANGE, "0.0,5.0,0.01,or_greater"), "set_motion_blur_intensity", "get_motion_blur_intensity");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "motion_blur_clamp_velocities_to_tile"), "set_motion_blur_clamp_velocities_to_tile", "is_motion_blur_clamp_velocities_to_tile");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_object_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_motion_blur_object_velocity_multiplier", "get_motion_blur_object_velocity_multiplier");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_movement_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_motion_blur_movement_velocity_multiplier", "get_motion_blur_movement_velocity_multiplier");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_rotation_velocity_multiplier", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_motion_blur_rotation_velocity_multiplier", "get_motion_blur_rotation_velocity_multiplier");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_velocity_lower_threshold", PROPERTY_HINT_RANGE, "0.0,10.0,0.01"), "set_motion_blur_velocity_lower_threshold", "get_motion_blur_velocity_lower_threshold");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_velocity_upper_threshold", PROPERTY_HINT_RANGE, "0.0,10.0,0.01"), "set_motion_blur_velocity_upper_threshold", "get_motion_blur_velocity_upper_threshold");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_velocity_lower_threshold", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater"), "set_motion_blur_velocity_lower_threshold", "get_motion_blur_velocity_lower_threshold");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "motion_blur_velocity_upper_threshold", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater"), "set_motion_blur_velocity_upper_threshold", "get_motion_blur_velocity_upper_threshold");
 
 	ADD_GROUP("DOF Blur", "dof_blur_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dof_blur_far_enabled"), "set_dof_blur_far_enabled", "is_dof_blur_far_enabled");

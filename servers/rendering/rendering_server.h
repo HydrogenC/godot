@@ -1413,8 +1413,15 @@ public:
 		MOTION_BLUR_TILE_SIZE_EXTRA_LARGE,
 	};
 
+	enum MotionBlurFramerateMode {
+		MOTION_BLUR_FRAMERATE_MODE_NATIVE,
+		MOTION_BLUR_FRAMERATE_MODE_MIN,
+		MOTION_BLUR_FRAMERATE_MODE_FIXED,
+	};
+
 	virtual void camera_attributes_set_motion_blur(RID p_camera_attributes, bool p_enable, float p_intensity, bool p_clamp_velocities_to_tile, float p_object_velocity_multiplier, float p_movement_velocity_multiplier, float p_rotation_velocity_multiplier, float p_velocity_lower_threshold, float p_velocity_upper_threshold) = 0;
 
+	virtual void camera_attributes_set_motion_blur_framerate_mode(MotionBlurFramerateMode p_mode, int p_reference_framerate) = 0;
 	virtual void camera_attributes_set_motion_blur_show_in_editor(bool p_enabled) = 0;
 	virtual void camera_attributes_set_motion_blur_quality(MotionBlurQuality p_quality) = 0;
 	virtual void camera_attributes_set_motion_blur_tile_size(MotionBlurTileSize p_tile_size) = 0;
@@ -2027,6 +2034,7 @@ VARIANT_ENUM_CAST(RenderingServer::EnvironmentSDFGIYScale);
 VARIANT_ENUM_CAST(RenderingServer::SubSurfaceScatteringQuality);
 VARIANT_ENUM_CAST(RenderingServer::MotionBlurQuality);
 VARIANT_ENUM_CAST(RenderingServer::MotionBlurTileSize);
+VARIANT_ENUM_CAST(RenderingServer::MotionBlurFramerateMode);
 VARIANT_ENUM_CAST(RenderingServer::DOFBlurQuality);
 VARIANT_ENUM_CAST(RenderingServer::DOFBokehShape);
 VARIANT_ENUM_CAST(RenderingServer::ShadowQuality);
