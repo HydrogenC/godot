@@ -560,7 +560,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 
 	if (can_use_effects && using_motion_blur) {
 		RENDER_TIMESTAMP("Motion Blur");
-		motion_blur->motion_blur_compute(rb, p_render_data->camera_attributes, p_render_data->scene_data, p_render_data->transparent_bg, copy_effects);
+		motion_blur->motion_blur_compute(rb, p_render_data->camera_attributes, p_render_data->scene_data, p_render_data->transparent_bg, time_step, copy_effects);
 	}
 
 	float auto_exposure_scale = 1.0;
@@ -1717,7 +1717,8 @@ void RendererSceneRenderRD::init() {
 		RendererRD::Fog::get_singleton()->init_fog_shader(RendererRD::LightStorage::get_singleton()->get_max_directional_lights(), get_roughness_layers(), is_using_radiance_octmap_array());
 	}
 
-	RSG::camera_attributes->camera_attributes_set_editor_motion_blur_enabled(bool(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_show_in_editor")));
+	RSG::camera_attributes->camera_attributes_set_motion_blur_framerate_mode(RS::MotionBlurFramerateMode(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_framerate_mode"))), int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_reference_framerate")));
+	RSG::camera_attributes->camera_attributes_set_motion_blur_show_in_editor(bool(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_show_in_editor")));
 	RSG::camera_attributes->camera_attributes_set_motion_blur_quality(RS::MotionBlurQuality(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_quality"))));
 	RSG::camera_attributes->camera_attributes_set_motion_blur_tile_size(RS::MotionBlurTileSize(int(GLOBAL_GET("rendering/camera/motion_blur/motion_blur_tile_size"))));
 
