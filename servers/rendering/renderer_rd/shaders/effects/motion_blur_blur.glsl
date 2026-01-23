@@ -40,10 +40,6 @@ layout(set = 0, binding = 1) uniform sampler2D velocity_sampler;
 layout(set = 0, binding = 2) uniform sampler2D neighbor_max;
 layout(rgba16f, set = 0, binding = 3) uniform writeonly image2D output_color;
 
-#ifdef USE_CUSTOM_CURVE
-layout(set = 0, binding = 4) uniform sampler2D custom_curve;
-#endif
-
 layout(push_constant, std430) uniform Params {
 	float motion_blur_intensity;
 	int sample_count;
