@@ -67,7 +67,7 @@ private:
 		float dof_blur_amount = 0.1;
 	};
 
-	RS::MotionBlurFramerateMode motion_blur_framerate_mode = RS::MOTION_BLUR_FRAMERATE_MODE_FIXED;
+	RS::MotionBlurFramerateMode motion_blur_framerate_mode = RS::MOTION_BLUR_FRAMERATE_MODE_CAPPED;
 	int motion_blur_reference_framerate = 30;
 	bool motion_blur_show_in_editor = true;
 	RS::MotionBlurQuality motion_blur_quality = RS::MOTION_BLUR_QUALITY_MEDIUM;

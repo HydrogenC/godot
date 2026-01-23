@@ -240,7 +240,7 @@ void RendererRD::MotionBlur::motion_blur_compute(Ref<RenderSceneBuffersRD> p_ren
 			case RenderingServer::MOTION_BLUR_FRAMERATE_MODE_NATIVE:
 				// Use raw intensity, ignore frame time
 				break;
-			case RenderingServer::MOTION_BLUR_FRAMERATE_MODE_MIN:
+			case RenderingServer::MOTION_BLUR_FRAMERATE_MODE_CAPPED:
 				intensity *= MIN(1.f / reference_framerate, time_step) / time_step;
 				break;
 			case RenderingServer::MOTION_BLUR_FRAMERATE_MODE_FIXED:
