@@ -3764,8 +3764,8 @@ void RenderingServer::init() {
 	GLOBAL_DEF_RST("rendering/textures/default_filters/use_nearest_mipmap_filter", false);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/textures/default_filters/anisotropic_filtering_level", PROPERTY_HINT_ENUM, String::utf8("Disabled (Fastest),2× (Faster),4× (Fast),8× (Average),16× (Slow)")), 2);
 
-	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_tile_size", PROPERTY_HINT_ENUM, "Small,Medium,Large,Extra Large"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_quality", PROPERTY_HINT_ENUM, "Low (Fast),Medium (Average),High (Slow)"), 1);
+	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_tile_size", PROPERTY_HINT_ENUM, "Small,Medium,Large,Extra Large"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_framerate_mode", PROPERTY_HINT_ENUM, "Native,Capped,Fixed"), 1);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/camera/motion_blur/motion_blur_reference_framerate", PROPERTY_HINT_RANGE, "1,120,1,or_greater"), 30);
 	GLOBAL_DEF("rendering/camera/motion_blur/motion_blur_show_in_editor", true);
