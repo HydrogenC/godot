@@ -23,6 +23,7 @@
 // 1.22 (2021-09-28): Added 'XeGTAO_' prefix to all local functions to avoid name clashes with various user codebases.
 // 1.30 (2021-10-10): Added support for directional component (bent normals).
 // N/A  (2025-11-20): Port and convert to GLSL and Godot 4.6 by HydrogenC.
+// N/A  (2026-02-22): Merge implementation of GT-VBAO into this file by HydrogenC.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[compute]
@@ -418,6 +419,252 @@ void generate_GTAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, o
 	r_weight = weight_sum;
 }
 
+///////////////////////////////////////////////////////////////////////
+// END GTAO implementation
+///////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////
+// The following code is for GT-VBAO, a variant of the GTAO algorithm.
+// CHOOSE BETWEEN GTAO and GT-VBAO before merging this PR.
+// If GTAO is adopted, then the following code about GT-VBAO should be removed. If GT-VBAO is adopted, then the above code about GTAO should be removed.
+// Otherwise remove the GTAO functions above.
+///////////////////////////////////////////////////////////////////////
+
+#define BITMASK_SECTOR_COUNT 32
+
+uint bit_count(uint value) {
+	value = value - ((value >> 1u) & 0x55555555u);
+	value = (value & 0x33333333u) + ((value >> 2u) & 0x33333333u);
+	return ((value + (value >> 4u) & 0xF0F0F0Fu) * 0x1010101u) >> 24u;
+}
+
+// Refer to: https://cdrinmatane.github.io/posts/ssaovb-code/
+uint update_sectors(float min_horizon, float max_horizon, uint global_occluded_bitmask)
+{
+	uint start_horizon_int = uint(min_horizon * BITMASK_SECTOR_COUNT);
+	float angle_horizon = (max_horizon - min_horizon) * BITMASK_SECTOR_COUNT;
+	uint angle_horizon_int = uint(ceil(angle_horizon));
+	uint angle_horizon_bitmask = angle_horizon_int > 0 ? (0xFFFFFFFFu >> (BITMASK_SECTOR_COUNT - angle_horizon_int)) : 0u;
+	uint current_occluded_bitmask = angle_horizon_bitmask << start_horizon_int;
+	return global_occluded_bitmask | current_occluded_bitmask;
+}
+
+// Fast acos approximation (degree-3 polynomial)
+vec2 fast_acos2(vec2 x)
+{
+	return ((-0.69813170 * x * x) - 0.87266463) * x + 1.57079633;
+}
+
+// Compute front and back horizon angles
+vec2 get_front_back_horizons(float sampling_direction, vec3 delta_pos, vec3 view_vec, float n)
+{
+	sampling_direction = -sampling_direction; // Flip to align with left-handed view space and Y-down
+	vec3 delta_pos_backface = delta_pos - view_vec * params.thickness_heuristic;
+
+	vec2 front_back_horizon = vec2(
+	dot(normalize(delta_pos), view_vec),
+	dot(normalize(delta_pos_backface), view_vec)
+	);
+
+	front_back_horizon = fast_acos2(front_back_horizon);
+
+	front_back_horizon = clamp(
+	(sampling_direction * -front_back_horizon - n + PI_HALF) / PI,
+	0.0, 1.0
+	);
+
+	// Conditional swizzle: if sampling_direction >= 0.0, return .yx, else .xy
+	front_back_horizon = sampling_direction >= 0.0
+	? front_back_horizon.yx
+	: front_back_horizon.xy;
+
+	return front_back_horizon;
+}
+
+float GTVBAO_slice(in int num_slices, in int num_taps, in int slice_index, float sample_noise, vec2 base_uv, vec2 screen_dir, float search_radius, vec3 view_pos, vec3 view_dir, vec3 view_space_normal) {
+	float scene_depth, sample_delta_len_sq, sample_horizon_cos, falloff;
+	vec3 sample_delta;
+	vec2 sample_uv;
+	const vec2 screen_vec_uv = screen_dir * params.viewport_pixel_size;
+	const float thickness = params.thickness_heuristic;
+
+	// Project view_space_normal onto the plane defined by screen_dir and view_dir
+	vec3 axis_vec = normalize(cross(view_dir, vec3(screen_dir, 0.0)));
+	vec3 ortho_dir_vec = cross(view_dir, axis_vec);
+	vec3 proj_normal_vec = view_space_normal - axis_vec * dot(view_space_normal, axis_vec);
+
+	float proj_normal_len = length(proj_normal_vec) + 0.000001;
+
+	float sign_norm = sign(dot(ortho_dir_vec, proj_normal_vec));
+	float cos_norm = dot(proj_normal_vec, view_dir) / proj_normal_len;
+	float n = sign_norm * acos_fast(cos_norm);
+
+	uint occlusion_bitmask = 0u;
+
+	// Find the largest angle
+	for (int i = 0; i < num_taps; ++i) {
+		float step_noise = float(slice_index + i * num_taps) * 0.6180339887498948482; // <- this should unroll
+		step_noise = fract(sample_noise + step_noise);
+
+		float s = (i + step_noise) / num_taps;
+		s *= s;
+
+		vec2 uv_offset = screen_vec_uv * max(search_radius * s, float(i) + 1.0);
+		// Paper: flip y due to texture coordinate system
+		uv_offset.y *= -1.0;
+
+		// Use HZB tracing for better performance
+		int mip_level = GTAO_BIAS_MIP_LEVEL;
+		if (i == 2) {
+			mip_level++;
+		}
+
+		if (i >= 3) {
+			mip_level += 2;
+		}
+
+		float scene_depth;
+		vec3 delta_pos1, delta_pos2;
+		vec2 sample_uv, sample_horizon_cos, delta_pos_len_sq;
+
+		// Positive direction
+		// Clamp UV coords to avoid artifacts
+		sample_uv = base_uv + uv_offset;
+		scene_depth = textureLod(source_depth_mipmaps, vec3(sample_uv, params.pass), mip_level).x;
+		delta_pos1 = NDC_to_viewspace(sample_uv, scene_depth).xyz - view_pos;
+		delta_pos_len_sq.x = dot(delta_pos1, delta_pos1);
+		// TODO: This could be replaced with fast rsqrt
+		sample_horizon_cos.x = dot(delta_pos1, view_dir) * inversesqrt(delta_pos_len_sq.x);
+
+		// Negative direction
+		sample_uv = base_uv - uv_offset;
+		scene_depth = textureLod(source_depth_mipmaps, vec3(sample_uv, params.pass), mip_level).x;
+		delta_pos2 = NDC_to_viewspace(sample_uv, scene_depth).xyz - view_pos;
+		delta_pos_len_sq.y = dot(delta_pos2, delta_pos2);
+		sample_horizon_cos.y = dot(delta_pos2, view_dir) * inversesqrt(delta_pos_len_sq.y);
+
+		float back_horizon;
+		vec2 front_back_horizon;
+
+		// Update visibility mask for both directions
+		back_horizon = dot(normalize(delta_pos1 - view_dir * thickness), view_dir);
+		front_back_horizon.x = clamp((-acos(sample_horizon_cos.x) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+		front_back_horizon.y = clamp((-acos(back_horizon) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+
+		// `front_back_horizon.x` is larger than `.y`
+		occlusion_bitmask = update_sectors(front_back_horizon.y, front_back_horizon.x, occlusion_bitmask);
+
+		back_horizon = dot(normalize(delta_pos2 - view_dir * thickness), view_dir);
+		front_back_horizon.x = clamp((acos_fast(sample_horizon_cos.y) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+		front_back_horizon.y = clamp((acos_fast(back_horizon) - n + PI_HALF) * PI_INV, 0.0, 1.0);
+
+		// `front_back_horizon.y` is larger than `.x`
+		occlusion_bitmask = update_sectors(front_back_horizon.x, front_back_horizon.y, occlusion_bitmask);
+	}
+
+	float local_visibility = 1.0 - float(bit_count(occlusion_bitmask)) / float(BITMASK_SECTOR_COUNT);
+	// Disallow total occlusion
+	local_visibility = max(0.03, local_visibility);
+	return local_visibility;
+}
+
+void generate_GTVBAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, out float r_weight, const ivec2 p_pix_coord, int p_quality_level) {
+	vec2 normalized_screen_pos = (p_pix_coord + vec2(0.5)) * params.viewport_pixel_size;
+
+	// Load this pixel's viewspace normal
+	uvec2 full_res_coord = p_pix_coord * params.size_multiplier + params.pass_coord_offset.xy;
+	vec3 pixel_normal = load_normal(ivec2(full_res_coord));
+
+	const int number_of_taps = num_taps[p_quality_level];
+	const int number_of_slices = num_slices[p_quality_level];
+	float pix_z, pix_left_z, pix_top_z, pix_right_z, pix_bottom_z;
+
+	vec3 gather_pos = vec3(vec2(p_pix_coord) * params.viewport_pixel_size, params.pass);
+	vec4 valuesUL = textureGather(source_depth_mipmaps, gather_pos);
+	vec4 valuesBR = textureGatherOffset(source_depth_mipmaps, gather_pos, ivec2(1, 1));
+
+	// get this pixel's viewspace depth
+	pix_z = valuesUL.y;
+
+	// get left right top bottom neighboring pixels for edge detection (gets compiled out on quality_level == 0)
+	pix_left_z = valuesUL.x;
+	pix_top_z = valuesUL.z;
+	pix_right_z = valuesBR.z;
+	pix_bottom_z = valuesBR.x;
+
+	// Calculate edges
+	vec4 edgesLRTB = calculate_edges(pix_z, pix_left_z, pix_right_z, pix_top_z, pix_bottom_z);
+
+	// Move center pixel slightly towards camera to avoid imprecision artifacts due to depth buffer imprecision
+	pix_z *= 0.99920;
+
+	vec3 pix_center_pos = NDC_to_viewspace(normalized_screen_pos, pix_z);
+	vec3 view_dir = normalize(-pix_center_pos);
+
+	if (pix_z >= GTAO_MAX_DEPTH) {
+		// Skip GTAO calculation if pixel is too far away
+		r_shadow_term = 1.0;
+		r_edges = edgesLRTB;
+		r_weight = 1.0;
+		return;
+	}
+
+	// Calculate rotation angle for slices
+	float delta_angle = PI / float(number_of_slices);
+	// Precalculate rotational components for slices
+	float sin_delta_angle = sin(delta_angle);
+	float cos_delta_angle = cos(delta_angle);
+
+	float viewspace_radius = params.radius * GTAO_RADIUS_MULTIPLIER;
+
+	// when too close, on-screen sampling disk will grow beyond screen size; limit this to avoid closeup temporal artifacts
+	const float too_close_limit = clamp(length(pix_center_pos) * params.inv_radius_near_limit, 0.0, 1.0) * 0.8 + 0.2;
+
+	viewspace_radius *= too_close_limit;
+
+	float pixel_dir_rb_viewspace_size_at_center_z = pix_z * params.viewport_pixel_size.x * params.NDC_to_view_mul.x;
+	float screenspace_radius = params.radius / pixel_dir_rb_viewspace_size_at_center_z;
+
+	vec2 noise = get_angle_offset_noise(p_pix_coord);
+	// Get a random direction on the hemisphere
+	// Screen dir is guaranteed to be already normalized
+	vec2 screen_dir;
+	screen_dir.y = sin(noise.x);
+	screen_dir.x = cos(noise.x);
+
+	// the main obscurance & sample weight storage
+	float obscurance_sum = 0.0;
+	float weight_sum = 0.0;
+
+	// Calculate AO values for each slice
+	for (int slice = 0; slice < number_of_slices; ++slice) {
+		// GTAO inner integral gives visibility, which is one minus obscurance
+		obscurance_sum += 1.0 - GTVBAO_slice(number_of_slices, number_of_taps, slice, noise.y, normalized_screen_pos, screen_dir, screenspace_radius, pix_center_pos, view_dir, pixel_normal);
+		weight_sum += 1.0;
+
+		// XeGTAO calculates screen direction with sincos(angle) every iteration, but that's too slow,
+		// so we calculate it once and rotate it instead.
+		vec2 tmp_dir = screen_dir;
+		screen_dir.x = tmp_dir.x * cos_delta_angle - tmp_dir.y * sin_delta_angle;
+		screen_dir.y = tmp_dir.x * sin_delta_angle + tmp_dir.y * cos_delta_angle;
+	}
+
+	// calculate weighted average
+	float obscurance = obscurance_sum / weight_sum;
+
+	// calculate final occlusion
+	float occlusion = calculate_final_occlusion(obscurance, pix_center_pos.z, edgesLRTB, p_quality_level);
+
+	// outputs!
+	r_shadow_term = occlusion; // Our final 'occlusion' term (0 means fully occluded, 1 means fully lit)
+	r_edges = edgesLRTB; // These are used to prevent blurring across edges, 1 means no edge, 0 means edge, 0.5 means half way there, etc.
+	r_weight = weight_sum;
+}
+
+///////////////////////////////////////////////////////////////////////
+// END GT-VBAO implementation
+///////////////////////////////////////////////////////////////////////
+
 void main() {
 	float out_shadow_term;
 	float out_weight;
@@ -428,7 +675,10 @@ void main() {
 		return;
 	}
 
-	generate_GTAO_shadows_internal(out_shadow_term, out_edges, out_weight, pix_coord, params.quality);
+	// generate_GTAO_shadows_internal(out_shadow_term, out_edges, out_weight, pix_coord, params.quality);
+	// Comment the line above and uncomment the line below to try GT-VBAO
+	generate_GTVBAO_shadows_internal(out_shadow_term, out_edges, out_weight, pix_coord, params.quality);
+
 	if (params.quality == 0) {
 		out_edges = vec4(1.0);
 	}
